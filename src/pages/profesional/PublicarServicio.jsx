@@ -126,8 +126,8 @@ export default function PublicarServicio() {
     setEnviando(true)
     try {
       const guardado = editando
-        ? (await actualizarServicio(id, payload())).data
-        : (await crearServicio(payload())).data
+        ? await actualizarServicio(id, payload())
+        : await crearServicio(payload())
       if (paraRevision) {
         await enviarARevision(guardado.id)
       }
