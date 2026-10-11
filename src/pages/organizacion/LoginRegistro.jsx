@@ -135,6 +135,11 @@ export default function LoginRegistro() {
           <button type="submit" disabled={enviando} className={claseBoton}>
             {enviando ? 'Ingresando…' : 'Iniciar sesión'}
           </button>
+          <p className="text-center text-[11px] text-gray-500">
+            <Link to="/recuperar-password" className="underline">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </p>
         </form>
       ) : (
         <form onSubmit={enviarRegistro} className="space-y-4">

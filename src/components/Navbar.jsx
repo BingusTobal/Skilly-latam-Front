@@ -29,7 +29,11 @@ export default function Navbar() {
 
       <nav className="flex items-center gap-6 text-[13px]">
         {tipo === 'profesional' && (
-          <Enlace to="/profesional/servicios">Mis servicios</Enlace>
+          <>
+            <Enlace to="/profesional/servicios">Mis servicios</Enlace>
+            <Enlace to="/profesional/solicitudes">Solicitudes</Enlace>
+            <Enlace to="/profesional/horarios">Mis horarios</Enlace>
+          </>
         )}
         {tipo === 'admin' && <Enlace to="/admin/servicios">Revisión de servicios</Enlace>}
         {(tipo === 'organizacion' || !tipo) && (

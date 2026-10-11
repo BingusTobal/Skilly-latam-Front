@@ -1,7 +1,7 @@
 import { ESTADOS_SERVICIO } from '../lib/formato'
 
-export default function StatusBadge({ estado, className = '' }) {
-  const config = ESTADOS_SERVICIO[estado] || {
+export default function StatusBadge({ estado, mapa = ESTADOS_SERVICIO, className = '' }) {
+  const config = mapa[estado] || {
     etiqueta: estado,
     clase: 'bg-gray-100 text-gray-600',
   }

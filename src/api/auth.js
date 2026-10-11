@@ -14,3 +14,17 @@ export async function miPerfil() {
   const { data } = await api.get('/auth/me/')
   return data
 }
+
+export async function solicitarReset(email) {
+  const { data } = await api.post('/auth/password-reset/', { email })
+  return data
+}
+
+export async function confirmarReset({ uid, token, password }) {
+  const { data } = await api.post('/auth/password-reset/confirmar/', {
+    uid,
+    token,
+    password,
+  })
+  return data
+}

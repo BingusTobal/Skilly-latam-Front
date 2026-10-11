@@ -125,16 +125,15 @@ export default function DetalleServicio() {
               <span>Profesional</span>
               <span>{servicio.profesional_nombre}</span>
             </div>
-            <button
-              type="button"
-              disabled
-              title="La reserva se habilita en el próximo sprint"
-              className="mt-3 w-full cursor-not-allowed bg-black py-3 text-[13px] text-white opacity-60"
+            <Link
+              to={`/servicios/${servicio.id}/programar`}
+              className="mt-3 block w-full bg-black py-3 text-center text-[13px] text-white no-underline"
             >
               Reservar este servicio
-            </button>
+            </Link>
             <p className="mt-2 text-[11px] leading-snug text-gray-500">
-              La reserva y el pago en custodia se habilitan en el siguiente sprint.
+              Elige fecha y hora según la disponibilidad del profesional. El pago queda
+              en custodia hasta que confirmes la entrega.
             </p>
           </div>
         </aside>
