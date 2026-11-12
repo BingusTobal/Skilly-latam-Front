@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 
 function destinoPorTipo(tipo) {
   if (tipo === 'profesional') return '/profesional/servicios'
-  if (tipo === 'admin') return '/admin/servicios'
+  if (tipo === 'admin') return '/admin'
   return '/catalogo'
 }
 

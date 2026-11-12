@@ -3,10 +3,12 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { mensajeDeError } from '../../api/axios'
 import { obtenerServicio } from '../../api/catalogo'
+import { iniciarPago } from '../../api/pagos'
 import { crearReserva } from '../../api/reservas'
 import Alerta from '../../components/Alerta'
 import { useAuth } from '../../context/AuthContext'
 import { formatearCLP, formatearFecha, formatearHora } from '../../lib/formato'
+import { irAWebpay } from '../../lib/webpay'
 
 const claseCampo =
   'w-full border border-gray-300 px-3 py-2 text-[13px] focus:border-black focus:outline-none'
@@ -64,8 +66,23 @@ export default function FormularioReserva() {
         hora_inicio: hora,
         ...form,
       })
+
+      let errorPago = ''
+      try {
+        const pago = await iniciarPago(reserva.id, reserva.token)
+        if (irAWebpay(pago)) {
+          return
+        }
+        errorPago = 'Transbank no devolvió la URL de pago. Intenta desde el detalle.'
+      } catch (err) {
+        errorPago = mensajeDeError(err)
+      }
+
       const query = reserva.token ? `?token=${reserva.token}` : ''
-      navigate(`/reserva/${reserva.id}${query}`, { replace: true })
+      navigate(`/reserva/${reserva.id}${query}`, {
+        replace: true,
+        state: errorPago ? { errorPago } : undefined,
+      })
     } catch (err) {
       setError(mensajeDeError(err))
     } finally {
@@ -176,7 +193,7 @@ export default function FormularioReserva() {
             disabled={enviando || (!usuario && !acepto)}
             className="w-full border border-black bg-black py-3 text-[13px] text-white disabled:opacity-60"
           >
-            {enviando ? 'Enviando…' : 'Solicitar reserva'}
+            {enviando ? 'Preparando el pago…' : 'Reservar y pagar'}
           </button>
 
           {!usuario && (
@@ -233,6 +250,10 @@ export default function FormularioReserva() {
                 </span>
               </div>
             </div>
+            <p className="mt-3 text-[11px] text-gray-500">
+              Al continuar serás redirigido a Webpay para pagar con tarjeta. El
+              monto queda retenido hasta que confirmes la entrega.
+            </p>
           </div>
         </aside>
       </div>

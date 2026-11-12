@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { mensajeDeError } from '../../api/axios'
+import { iniciarPago } from '../../api/pagos'
 import {
   cancelarReserva,
   obtenerReserva,
@@ -17,6 +18,7 @@ import {
   formatearFecha,
   formatearHora,
 } from '../../lib/formato'
+import { irAWebpay } from '../../lib/webpay'
 
 function Fila({ etiqueta, children }) {
   return (
@@ -30,12 +32,13 @@ function Fila({ etiqueta, children }) {
 export default function DetalleReserva() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const token = searchParams.get('token')
   const { usuario } = useAuth()
 
   const [reserva, setReserva] = useState(null)
   const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(location.state?.errorPago || '')
   const [aviso, setAviso] = useState('')
   const [procesando, setProcesando] = useState(false)
 
@@ -64,6 +67,22 @@ export default function DetalleReserva() {
     }
   }
 
+  async function pagar() {
+    setError('')
+    setAviso('')
+    setProcesando(true)
+    try {
+      const pago = await iniciarPago(reserva.id, token)
+      if (!irAWebpay(pago)) {
+        setError('Transbank no devolvió la URL de pago. Intenta nuevamente.')
+        setProcesando(false)
+      }
+    } catch (err) {
+      setError(mensajeDeError(err))
+      setProcesando(false)
+    }
+  }
+
   if (cargando) {
     return <p className="p-8 text-center text-sm text-gray-500">Cargando…</p>
   }
@@ -80,10 +99,11 @@ export default function DetalleReserva() {
 
   const estado = reserva.estado
   const conSesion = Boolean(usuario)
+  const puedePagar = estado === 'pendiente_pago' && (conSesion || Boolean(token))
   const puedeCancelar = conSesion && ['pendiente_aceptacion', 'en_curso'].includes(estado)
   const puedeConfirmar = conSesion && estado === 'entregado_por_confirmar'
   const puedeReportar = conSesion && ['en_curso', 'entregado_por_confirmar'].includes(estado)
-  const mostrandoAcciones = puedeCancelar || puedeConfirmar || puedeReportar
+  const mostrandoAcciones = puedePagar || puedeCancelar || puedeConfirmar || puedeReportar
   const requiereSesion =
     !conSesion &&
     ['en_curso', 'entregado_por_confirmar'].includes(estado) &&
@@ -120,7 +140,14 @@ export default function DetalleReserva() {
         </div>
       )}
 
-      {token && estado === 'pendiente_aceptacion' && (
+      {estado === 'pendiente_pago' && (
+        <div className="mb-4 border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-800">
+          Tu reserva está creada, pero todavía falta el pago. Complétalo para
+          enviarla al profesional y bloquear el horario.
+        </div>
+      )}
+
+      {token && ['pendiente_pago', 'pendiente_aceptacion'].includes(estado) && (
         <div className="mb-4 border border-amber-300 bg-amber-50 px-4 py-3 text-[12.5px] text-amber-800">
           Revisa tu correo: te enviamos un enlace para gestionar y seguir esta
           reserva. Guarda también esta página, puedes volver con el mismo enlace.
@@ -194,6 +221,16 @@ export default function DetalleReserva() {
 
       {mostrandoAcciones && (
         <div className="mt-6 flex flex-wrap gap-3">
+          {puedePagar && (
+            <button
+              type="button"
+              disabled={procesando}
+              onClick={pagar}
+              className="border border-black bg-black px-5 py-2.5 text-[13px] text-white disabled:opacity-50"
+            >
+              {procesando ? 'Abriendo Webpay…' : 'Pagar ahora con Webpay'}
+            </button>
+          )}
           {puedeConfirmar && (
             <Link
               to={`/reserva/${reserva.id}/confirmar`}

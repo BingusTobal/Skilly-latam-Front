@@ -20,8 +20,30 @@ export const ESTADOS_SERVICIO = {
   suspendido: { etiqueta: 'Suspendido', clase: 'bg-gray-200 text-gray-600' },
 }
 
+// Estados de la postulación y de sus certificados.
+export const ESTADOS_POSTULACION = {
+  pendiente: { etiqueta: 'Pendiente', clase: 'bg-amber-100 text-amber-800' },
+  aprobada: { etiqueta: 'Aprobada', clase: 'bg-green-100 text-green-700' },
+  rechazada: { etiqueta: 'Rechazada', clase: 'bg-red-100 text-red-700' },
+  devuelta: { etiqueta: 'Devuelta', clase: 'bg-amber-100 text-amber-800' },
+}
+
+export const ESTADOS_CERTIFICADO = {
+  verificado_automatico: {
+    etiqueta: 'Verificado automáticamente',
+    clase: 'bg-green-100 text-green-700',
+  },
+  sin_reviewer: { etiqueta: 'Sin revisar', clase: 'bg-amber-100 text-amber-800' },
+  aprobado: { etiqueta: 'Aprobado', clase: 'bg-green-100 text-green-700' },
+  rechazado: { etiqueta: 'Rechazado', clase: 'bg-red-100 text-red-700' },
+}
+
 // Estados de la reserva (Sprint 3).
 export const ESTADOS_RESERVA = {
+  pendiente_pago: {
+    etiqueta: 'Pendiente de pago',
+    clase: 'bg-amber-100 text-amber-800',
+  },
   pendiente_aceptacion: {
     etiqueta: 'Pendiente de aceptación',
     clase: 'bg-amber-100 text-amber-800',
@@ -65,6 +87,67 @@ export function formatearFecha(fechaISO) {
 export function formatearHora(hora) {
   if (!hora) return ''
   return hora.slice(0, 5)
+}
+
+const MESES_CORTOS = [
+  'ene',
+  'feb',
+  'mar',
+  'abr',
+  'may',
+  'jun',
+  'jul',
+  'ago',
+  'sep',
+  'oct',
+  'nov',
+  'dic',
+]
+
+export function formatearFechaCorta(fechaISO) {
+  if (!fechaISO) return ''
+  const [anio, mes, dia] = fechaISO.slice(0, 10).split('-').map(Number)
+  return `${dia} ${MESES_CORTOS[mes - 1]} ${anio}`
+}
+
+export function formatearFechaHora(fechaISO) {
+  if (!fechaISO) return ''
+  const fecha = new Date(fechaISO)
+  if (Number.isNaN(fecha.getTime())) return ''
+  const dia = String(fecha.getDate()).padStart(2, '0')
+  const mes = MESES_CORTOS[fecha.getMonth()]
+  const anio = fecha.getFullYear()
+  const hora = `${String(fecha.getHours()).padStart(2, '0')}:${String(
+    fecha.getMinutes(),
+  ).padStart(2, '0')}`
+  return `${dia} ${mes} ${anio} · ${hora}`
+}
+
+export function hace(fechaISO) {
+  if (!fechaISO) return ''
+  const fecha = new Date(fechaISO)
+  if (Number.isNaN(fecha.getTime())) return ''
+  const minutos = Math.max(0, Math.round((Date.now() - fecha.getTime()) / 60000))
+  if (minutos < 1) return 'hace instantes'
+  if (minutos < 60) return `hace ${minutos} min`
+  const horas = Math.round(minutos / 60)
+  if (horas < 24) return `hace ${horas} h`
+  const dias = Math.round(horas / 24)
+  if (dias < 30) return `hace ${dias} d`
+  return formatearFechaCorta(fechaISO)
+}
+
+export const ESTADOS_DISPUTA = {
+  abierta: { etiqueta: 'Abierta', clase: 'bg-red-100 text-red-700' },
+  en_revision: { etiqueta: 'En revisión', clase: 'bg-amber-100 text-amber-800' },
+  resuelta: { etiqueta: 'Resuelta', clase: 'bg-green-100 text-green-700' },
+}
+
+export const ESTADOS_PROFESIONAL = {
+  postulando: { etiqueta: 'Postulando', clase: 'bg-amber-100 text-amber-800' },
+  aprobado: { etiqueta: 'Aprobado', clase: 'bg-green-100 text-green-700' },
+  rechazado: { etiqueta: 'Rechazado', clase: 'bg-red-100 text-red-700' },
+  suspendido: { etiqueta: 'Suspendido', clase: 'bg-gray-200 text-gray-600' },
 }
 
 export const FORMATOS = {

@@ -33,9 +33,10 @@ export default function Navbar() {
             <Enlace to="/profesional/servicios">Mis servicios</Enlace>
             <Enlace to="/profesional/solicitudes">Solicitudes</Enlace>
             <Enlace to="/profesional/horarios">Mis horarios</Enlace>
+            <Enlace to="/profesional/postulacion">Mi postulación</Enlace>
           </>
         )}
-        {tipo === 'admin' && <Enlace to="/admin/servicios">Revisión de servicios</Enlace>}
+        {tipo === 'admin' && <Enlace to="/admin">Panel admin</Enlace>}
         {(tipo === 'organizacion' || !tipo) && (
           <Enlace to="/catalogo">Servicios</Enlace>
         )}
@@ -55,9 +56,14 @@ export default function Navbar() {
             </button>
           </>
         ) : (
-          <Link to="/login" className={`${linkBase} border border-black px-4 py-1.5`}>
-            Iniciar sesión
-          </Link>
+          <>
+            <Link to="/postular" className={linkBase}>
+              Postula como profesional
+            </Link>
+            <Link to="/login" className={`${linkBase} border border-black px-4 py-1.5`}>
+              Iniciar sesión
+            </Link>
+          </>
         )}
       </nav>
     </header>

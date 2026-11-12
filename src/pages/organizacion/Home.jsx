@@ -102,6 +102,20 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="border-b border-gray-100 bg-gray-50 px-8 py-9 text-center">
+        <h2 className="text-[15px] font-bold">¿Ofreces servicios profesionales?</h2>
+        <p className="mx-auto mt-1 max-w-xl text-[12px] text-gray-500">
+          Postula a Skilly, sube tus certificados y publica tus servicios con
+          precios fijos. Tú defines tus horarios.
+        </p>
+        <Link
+          to="/postular"
+          className="mt-4 inline-block border border-black bg-white px-5 py-2.5 text-[13px] text-black no-underline"
+        >
+          Postula como profesional
+        </Link>
+      </section>
+
       <div className="px-8 py-8 text-center">
         <Link
           to="/catalogo"
