@@ -41,6 +41,7 @@ export default function Navbar() {
           <Enlace to="/catalogo">Servicios</Enlace>
         )}
         {tipo === 'organizacion' && <Enlace to="/mis-reservas">Mis reservas</Enlace>}
+        {tipo !== 'admin' && <Enlace to="/ayuda">Ayuda</Enlace>}
 
         {usuario ? (
           <>

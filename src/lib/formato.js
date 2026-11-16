@@ -143,6 +143,33 @@ export const ESTADOS_DISPUTA = {
   resuelta: { etiqueta: 'Resuelta', clase: 'bg-green-100 text-green-700' },
 }
 
+export const RESULTADOS_DISPUTA = {
+  a_favor_organizacion: {
+    etiqueta: 'A favor de la organización',
+    clase: 'bg-sky text-navy',
+  },
+  a_favor_profesional: {
+    etiqueta: 'A favor del profesional',
+    clase: 'bg-green-100 text-green-700',
+  },
+  division: { etiqueta: 'División', clase: 'bg-amber-100 text-amber-800' },
+}
+
+export const ESTADOS_PAGO = {
+  iniciado: 'Iniciado',
+  autorizado: 'Autorizado',
+  capturando: 'Capturando',
+  retenido: 'Retenido',
+  liberado: 'Liberado',
+  reembolsando: 'Reembolsando',
+  reembolsado: 'Reembolsado',
+  cancelando: 'Cancelando',
+  cancelado: 'Cancelado',
+  rechazado: 'Rechazado',
+  expirado: 'Expirado',
+  revision_manual: 'Revisión manual',
+}
+
 export const ESTADOS_PROFESIONAL = {
   postulando: { etiqueta: 'Postulando', clase: 'bg-amber-100 text-amber-800' },
   aprobado: { etiqueta: 'Aprobado', clase: 'bg-green-100 text-green-700' },

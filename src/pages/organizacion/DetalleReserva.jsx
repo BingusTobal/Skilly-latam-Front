@@ -2,20 +2,20 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 
 import { mensajeDeError } from '../../api/axios'
+import { abrirDisputa } from '../../api/disputas'
 import { iniciarPago } from '../../api/pagos'
-import {
-  cancelarReserva,
-  obtenerReserva,
-  reportarProblema,
-} from '../../api/reservas'
+import { cancelarReserva, obtenerReserva } from '../../api/reservas'
 import Alerta from '../../components/Alerta'
 import StatusBadge from '../../components/StatusBadge'
 import { useAuth } from '../../context/AuthContext'
 import {
+  ESTADOS_DISPUTA,
   ESTADOS_RESERVA,
   FORMATOS,
+  RESULTADOS_DISPUTA,
   formatearCLP,
   formatearFecha,
+  formatearFechaHora,
   formatearHora,
 } from '../../lib/formato'
 import { irAWebpay } from '../../lib/webpay'
@@ -41,6 +41,11 @@ export default function DetalleReserva() {
   const [error, setError] = useState(location.state?.errorPago || '')
   const [aviso, setAviso] = useState('')
   const [procesando, setProcesando] = useState(false)
+  const [formDisputa, setFormDisputa] = useState(false)
+  const [motivoDisputa, setMotivoDisputa] = useState('')
+  const [descripcionDisputa, setDescripcionDisputa] = useState('')
+  const [evidenciaDisputa, setEvidenciaDisputa] = useState(null)
+  const [enviandoDisputa, setEnviandoDisputa] = useState(false)
 
   const cargar = useCallback(() => {
     setCargando(true)
@@ -83,6 +88,31 @@ export default function DetalleReserva() {
     }
   }
 
+  async function enviarDisputa(evento) {
+    evento.preventDefault()
+    setError('')
+    setAviso('')
+    setEnviandoDisputa(true)
+    try {
+      await abrirDisputa({
+        reserva: reserva.id,
+        motivo: motivoDisputa,
+        descripcion: descripcionDisputa,
+        evidencia: evidenciaDisputa,
+      })
+      setFormDisputa(false)
+      setMotivoDisputa('')
+      setDescripcionDisputa('')
+      setEvidenciaDisputa(null)
+      setAviso('Registramos tu disputa. El equipo de Skilly revisará el caso.')
+      cargar()
+    } catch (err) {
+      setError(mensajeDeError(err))
+    } finally {
+      setEnviandoDisputa(false)
+    }
+  }
+
   if (cargando) {
     return <p className="p-8 text-center text-sm text-gray-500">Cargando…</p>
   }
@@ -102,7 +132,9 @@ export default function DetalleReserva() {
   const puedePagar = estado === 'pendiente_pago' && (conSesion || Boolean(token))
   const puedeCancelar = conSesion && ['pendiente_aceptacion', 'en_curso'].includes(estado)
   const puedeConfirmar = conSesion && estado === 'entregado_por_confirmar'
-  const puedeReportar = conSesion && ['en_curso', 'entregado_por_confirmar'].includes(estado)
+  const disputa = reserva.disputa
+  const puedeReportar =
+    conSesion && !disputa && ['en_curso', 'entregado_por_confirmar'].includes(estado)
   const mostrandoAcciones = puedePagar || puedeCancelar || puedeConfirmar || puedeReportar
   const requiereSesion =
     !conSesion &&
@@ -193,6 +225,122 @@ export default function DetalleReserva() {
         </div>
       )}
 
+      {disputa && (
+        <div className="mt-4 border border-red-300 px-4 py-3 text-[13px]">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <p className="font-bold">Disputa #{disputa.id}</p>
+            <StatusBadge estado={disputa.estado} mapa={ESTADOS_DISPUTA} />
+          </div>
+          <p className="mb-1">
+            <b>Motivo:</b> {disputa.motivo}
+          </p>
+          {disputa.descripcion && <p className="mb-1">{disputa.descripcion}</p>}
+          <p className="text-[12px] text-gray-500">
+            Abierta el {formatearFechaHora(disputa.creada_en)}
+          </p>
+
+          {disputa.evidencias?.length > 0 && (
+            <div className="mt-3">
+              <p className="mb-1 text-[12px] font-bold text-gray-500">Evidencia</p>
+              <ul className="space-y-1">
+                {disputa.evidencias.map((archivo) => (
+                  <li key={archivo.id} className="text-[12.5px]">
+                    {archivo.archivo ? (
+                      <a
+                        href={archivo.archivo}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline"
+                      >
+                        {archivo.nombre || `Archivo ${archivo.id}`}
+                      </a>
+                    ) : (
+                      archivo.nombre || `Archivo ${archivo.id}`
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {disputa.estado === 'resuelta' && (
+            <div className="mt-3 border-t border-red-200 pt-3">
+              <p className="mb-1">
+                <b>Resultado:</b>{' '}
+                {RESULTADOS_DISPUTA[disputa.resultado]?.etiqueta || disputa.resultado}
+              </p>
+              {disputa.monto_reembolso && (
+                <p className="mb-1">
+                  <b>Reembolso:</b> {formatearCLP(disputa.monto_reembolso)}
+                </p>
+              )}
+              {disputa.resolucion && <p>{disputa.resolucion}</p>}
+              {disputa.resuelta_en && (
+                <p className="mt-1 text-[12px] text-gray-500">
+                  Resuelta el {formatearFechaHora(disputa.resuelta_en)}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {formDisputa && (
+        <form
+          onSubmit={enviarDisputa}
+          className="mt-4 border border-red-300 px-4 py-4 text-[13px]"
+        >
+          <p className="mb-3 font-bold">Reportar un problema</p>
+          <label className="mb-1 block text-[12px] font-bold text-gray-500">
+            Motivo
+          </label>
+          <input
+            value={motivoDisputa}
+            onChange={(e) => setMotivoDisputa(e.target.value)}
+            maxLength={200}
+            required
+            placeholder="Ej: Entrega incompleta"
+            className="mb-3 w-full border border-gray-400 px-3 py-2 text-[13px] outline-none"
+          />
+          <label className="mb-1 block text-[12px] font-bold text-gray-500">
+            Descripción
+          </label>
+          <textarea
+            value={descripcionDisputa}
+            onChange={(e) => setDescripcionDisputa(e.target.value)}
+            rows={3}
+            maxLength={2000}
+            placeholder="Cuéntanos qué ocurrió con el servicio."
+            className="mb-3 w-full border border-gray-400 px-3 py-2 text-[13px] outline-none"
+          />
+          <label className="mb-1 block text-[12px] font-bold text-gray-500">
+            Evidencia (opcional, PDF/JPG/PNG hasta 5 MB)
+          </label>
+          <input
+            type="file"
+            accept="application/pdf,image/jpeg,image/png"
+            onChange={(e) => setEvidenciaDisputa(e.target.files?.[0] || null)}
+            className="mb-4 block text-[12px]"
+          />
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={enviandoDisputa}
+              className="border border-black bg-black px-4 py-2 text-[13px] text-white disabled:opacity-50"
+            >
+              {enviandoDisputa ? 'Enviando…' : 'Abrir disputa'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFormDisputa(false)}
+              className="border border-black px-4 py-2 text-[13px]"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
+
       {estado === 'pendiente_aceptacion' && (
         <p className="mt-4 text-[12.5px] text-gray-500">
           El profesional tiene un plazo de 6 horas para responder. Si no lo hace, la
@@ -257,17 +405,8 @@ export default function DetalleReserva() {
           {puedeReportar && (
             <button
               type="button"
-              disabled={procesando}
-              onClick={() =>
-                ejecutar(
-                  () =>
-                    reportarProblema(reserva.id, {
-                      motivo: 'Problema reportado por la organización',
-                    }),
-                  'Registramos tu reporte. El equipo de Skilly lo revisará.',
-                )
-              }
-              className="border border-red-300 px-5 py-2.5 text-[13px] text-red-600 disabled:opacity-50"
+              onClick={() => setFormDisputa(true)}
+              className="border border-red-300 px-5 py-2.5 text-[13px] text-red-600"
             >
               Reportar un problema
             </button>

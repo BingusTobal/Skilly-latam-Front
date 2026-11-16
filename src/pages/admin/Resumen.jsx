@@ -41,11 +41,18 @@ export default function Resumen() {
     <div>
       <Encabezado titulo="Resumen general" sesion={usuario?.email} />
 
-      <div className="mb-7 flex gap-3.5">
+      <div className="mb-4 flex flex-wrap gap-3.5">
         <Kpi etiqueta="Postulaciones pendientes" valor={kpis.postulaciones_pendientes} tono="warn" />
         <Kpi etiqueta="Servicios activos" valor={kpis.servicios_activos} tono="ok" />
+        <Kpi etiqueta="Reservas activas" valor={kpis.reservas_activas} />
+        <Kpi etiqueta="Solicitudes vencidas" valor={kpis.solicitudes_vencidas} tono="warn" />
         <Kpi etiqueta="Disputas abiertas" valor={kpis.disputas_abiertas} tono="alert" />
-        <Kpi etiqueta="Comisión este mes" valor={formatearCLP(kpis.comision_mes)} />
+      </div>
+
+      <div className="mb-7 flex flex-wrap gap-3.5">
+        <Kpi etiqueta="Ingresos del mes" valor={formatearCLP(kpis.ingresos_mes)} />
+        <Kpi etiqueta="Comisión este mes" valor={formatearCLP(kpis.comision_mes)} tono="ok" />
+        <Kpi etiqueta="Tasa de disputas" valor={`${kpis.tasa_disputas}%`} tono="alert" />
         <Kpi etiqueta="Organizaciones activas" valor={kpis.organizaciones_activas} />
       </div>
 

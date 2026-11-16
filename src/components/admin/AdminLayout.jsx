@@ -6,6 +6,7 @@ import Logo from '../Logo'
 const ENLACES = [
   ['/admin', 'Resumen'],
   ['/admin/postulaciones', 'Postulaciones'],
+  ['/admin/certificados', 'Certificados'],
   ['/admin/disputas', 'Disputas'],
   ['/admin/profesionales', 'Profesionales'],
   ['/admin/organizaciones', 'Organizaciones'],

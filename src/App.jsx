@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import RutaProtegida from './components/RutaProtegida'
 import AdminLayout from './components/admin/AdminLayout'
+import Certificados from './pages/admin/Certificados'
 import Comisiones from './pages/admin/Comisiones'
 import DetallePostulacion from './pages/admin/DetallePostulacion'
 import Disputas from './pages/admin/Disputas'
@@ -13,6 +14,7 @@ import Postulaciones from './pages/admin/Postulaciones'
 import Profesionales from './pages/admin/Profesionales'
 import Resumen from './pages/admin/Resumen'
 import RevisionServicios from './pages/admin/RevisionServicios'
+import Ayuda from './pages/organizacion/Ayuda'
 import Catalogo from './pages/organizacion/Catalogo'
 import ConfirmarEntrega from './pages/organizacion/ConfirmarEntrega'
 import DetalleServicio from './pages/organizacion/DetalleServicio'
@@ -39,6 +41,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="catalogo" element={<Catalogo />} />
+        <Route path="ayuda" element={<Ayuda />} />
         <Route path="servicios/:id" element={<DetalleServicio />} />
         <Route path="servicios/:id/programar" element={<ProgramaServicio />} />
         <Route path="servicios/:id/reservar" element={<FormularioReserva />} />
@@ -72,6 +75,7 @@ export default function App() {
           <Route path="admin" element={<Resumen />} />
           <Route path="admin/postulaciones" element={<Postulaciones />} />
           <Route path="admin/postulaciones/:id" element={<DetallePostulacion />} />
+          <Route path="admin/certificados" element={<Certificados />} />
           <Route path="admin/disputas" element={<Disputas />} />
           <Route path="admin/profesionales" element={<Profesionales />} />
           <Route path="admin/organizaciones" element={<Organizaciones />} />

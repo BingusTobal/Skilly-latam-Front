@@ -26,8 +26,29 @@ export function resumenComisionesAdmin(params = {}) {
   return api.get('/admin/comisiones/', { params })
 }
 
+// --- Tasas de comisión (ticket 5.4) ---
+export function listarTasasComisionAdmin() {
+  return api.get('/admin/tasas-comision/')
+}
+
+export function crearTasaComisionAdmin(payload) {
+  return api.post('/admin/tasas-comision/', payload)
+}
+
+export function actualizarTasaComisionAdmin(id, payload) {
+  return api.patch(`/admin/tasas-comision/${id}/`, payload)
+}
+
 export function listarDisputasAdmin(params = {}) {
   return api.get('/admin/disputas/', { params })
+}
+
+export function resolverDisputaAdmin(id, { resultado, resolucion, porcentaje_reembolso }) {
+  return api.post(`/admin/disputas/${id}/resolver/`, {
+    resultado,
+    resolucion,
+    porcentaje_reembolso,
+  })
 }
 
 // --- Postulaciones y certificados ---
@@ -53,6 +74,10 @@ export function rechazarPostulacion(id, comentarios_admin) {
   return api.post(`/postulaciones/admin/postulaciones/${id}/rechazar/`, {
     comentarios_admin,
   })
+}
+
+export function listarCertificadosAdmin(params = {}) {
+  return api.get('/postulaciones/admin/certificados/', { params })
 }
 
 export function aprobarCertificado(id) {

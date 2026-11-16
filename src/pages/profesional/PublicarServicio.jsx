@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import {
@@ -10,6 +10,7 @@ import {
 } from '../../api/catalogo'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import { cotizarNeto } from '../../api/comisiones'
 import { FORMATOS, formatearCLP, montoNeto } from '../../lib/formato'
 
 const CLASE_INPUT = 'w-full border border-gray-400 px-3 py-2 text-[13px] outline-none'
@@ -61,7 +62,26 @@ export default function PublicarServicio() {
   }, [editando, id])
 
   const requiereUbicacion = form.formato === 'presencial' || form.formato === 'semipresencial'
-  const neto = useMemo(() => montoNeto(form.precio), [form.precio])
+  const [neto, setNeto] = useState(0)
+
+  useEffect(() => {
+    const precio = Number(form.precio) || 0
+    if (!precio) {
+      setNeto(0)
+      return
+    }
+    let vigente = true
+    cotizarNeto({ precio, categoria: form.categoria })
+      .then((data) => {
+        if (vigente) setNeto(data.monto_neto)
+      })
+      .catch(() => {
+        if (vigente) setNeto(montoNeto(precio))
+      })
+    return () => {
+      vigente = false
+    }
+  }, [form.precio, form.categoria])
 
   function actualizar(campo, valor) {
     setForm((prev) => ({ ...prev, [campo]: valor }))
