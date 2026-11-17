@@ -1,7 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 
-import Layout from './components/Layout'
+import ProfesionalLayout from './components/ProfesionalLayout'
 import RutaProtegida from './components/RutaProtegida'
+import SitioLayout from './components/SitioLayout'
 import AdminLayout from './components/admin/AdminLayout'
 import Certificados from './pages/admin/Certificados'
 import Comisiones from './pages/admin/Comisiones'
@@ -27,6 +28,7 @@ import ProgramaServicio from './pages/organizacion/ProgramaServicio'
 import ResultadoPago from './pages/organizacion/ResultadoPago'
 import ActivarCuenta from './pages/organizacion/ActivarCuenta'
 import SolicitarReset from './pages/organizacion/SolicitarReset'
+import MiPerfil from './pages/profesional/MiPerfil'
 import MiPostulacion from './pages/profesional/MiPostulacion'
 import MisHorarios from './pages/profesional/MisHorarios'
 import MisServicios from './pages/profesional/MisServicios'
@@ -38,8 +40,11 @@ import Solicitud from './pages/profesional/Solicitud'
 export default function App() {
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route element={<SitioLayout modo="inicio" />}>
         <Route index element={<Home />} />
+      </Route>
+
+      <Route element={<SitioLayout />}>
         <Route path="catalogo" element={<Catalogo />} />
         <Route path="ayuda" element={<Ayuda />} />
         <Route path="servicios/:id" element={<DetalleServicio />} />
@@ -57,7 +62,12 @@ export default function App() {
           <Route path="reserva/:id/confirmar" element={<ConfirmarEntrega />} />
         </Route>
 
-        <Route element={<RutaProtegida tipos={['profesional']} />}>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+
+      <Route element={<RutaProtegida tipos={['profesional']} />}>
+        <Route element={<ProfesionalLayout />}>
+          <Route path="profesional" element={<Navigate to="/profesional/servicios" replace />} />
           <Route path="profesional/servicios" element={<MisServicios />} />
           <Route path="profesional/servicios/nuevo" element={<PublicarServicio />} />
           <Route path="profesional/servicios/:id/editar" element={<PublicarServicio />} />
@@ -65,9 +75,8 @@ export default function App() {
           <Route path="profesional/solicitudes/:id" element={<Solicitud />} />
           <Route path="profesional/horarios" element={<MisHorarios />} />
           <Route path="profesional/postulacion" element={<MiPostulacion />} />
+          <Route path="profesional/perfil" element={<MiPerfil />} />
         </Route>
-
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
 
       <Route element={<RutaProtegida tipos={['admin']} />}>

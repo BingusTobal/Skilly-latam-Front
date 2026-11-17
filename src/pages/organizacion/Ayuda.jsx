@@ -1,6 +1,19 @@
 import { useMemo, useState } from 'react'
 
 import { CATEGORIAS_AYUDA, CONTACTO, PREGUNTAS } from '../../content/ayuda'
+import Icon from '../../components/Icon'
+import {
+  BotonEnlace,
+  Card,
+  EmptyState,
+  PageHeader,
+} from '../../components/ui'
+
+const ESTILOS_CATEGORIA = [
+  { icono: 'credit-card', clase: 'bg-brand-blue-soft text-brand-blue-deep' },
+  { icono: 'users', clase: 'bg-ok-soft text-ok' },
+  { icono: 'alert-triangle', clase: 'bg-warn-soft text-warn' },
+]
 
 function normalizar(texto) {
   return (texto || '')
@@ -39,129 +52,174 @@ export default function Ayuda() {
   )}`
 
   return (
-    <div className="-mx-6 -mt-5">
-      <section className="bg-navy px-8 pb-10 pt-12 text-center text-white">
-        <h1 className="text-[24px] font-bold">¿En qué podemos ayudarte?</h1>
-        <p className="mt-2 text-[12.5px] text-sky">
-          Busca por reserva, pago, certificado o disputa.
-        </p>
-        <div className="mx-auto mt-6 flex max-w-lg border border-black bg-white">
-          <input
-            value={busqueda}
-            onChange={(evento) => {
-              setBusqueda(evento.target.value)
-              setAbierta(null)
-            }}
-            className="flex-1 px-3 py-3 text-[13px] text-gray-700 outline-none"
-            placeholder="Ej: cancelar una reserva, comisión, certificados…"
-            aria-label="Buscar en el centro de ayuda"
-          />
-          <span className="flex items-center border-l border-black bg-black px-4 text-[12.5px] text-white">
-            Buscar
-          </span>
-        </div>
-      </section>
+    <div>
+      <PageHeader
+        migas={[{ texto: 'Inicio', to: '/' }, { texto: 'Ayuda' }]}
+        etiqueta="Centro de ayuda"
+        titulo="¿En qué podemos ayudarte?"
+        descripcion="Busca por reserva, pago, certificado o disputa."
+      />
 
-      <section className="border-b border-gray-100 px-8 py-7">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {CATEGORIAS_AYUDA.map((grupo) => {
-            const activa = categoria === grupo.id
-            return (
-              <button
-                key={grupo.id}
-                type="button"
-                onClick={() => {
-                  setCategoria(activa ? '' : grupo.id)
-                  setAbierta(null)
-                }}
-                className={`border p-4 text-left transition ${
-                  activa ? 'border-black' : 'border-line hover:border-ink'
-                } ${grupo.color}`}
-              >
-                <p className="text-[12.5px] font-bold">{grupo.titulo}</p>
-                <p className="mt-1 text-[11px] text-gray-600">{grupo.descripcion}</p>
-              </button>
-            )
-          })}
-        </div>
-        {categoria && (
-          <button
-            type="button"
-            onClick={() => setCategoria('')}
-            className="mt-3 text-[11px] text-navy underline"
-          >
-            Ver todas las categorías
-          </button>
-        )}
-      </section>
-
-      <section className="px-8 py-7">
-        <h2 className="mb-4 text-[16px] font-bold">Preguntas frecuentes</h2>
-
-        {agrupadas.length === 0 ? (
-          <div className="border border-line bg-[#fafafa] px-4 py-6 text-center">
-            <p className="text-[13px] font-bold">No encontramos resultados.</p>
-            <p className="mt-1 text-[12px] text-gray-600">
-              Prueba con otra palabra o escríbenos a soporte.
-            </p>
+      <div className="mb-6 overflow-hidden rounded-[24px] bg-navy-950 px-5 py-6 sm:px-8 sm:py-8">
+        <div className="mx-auto max-w-xl">
+          <label htmlFor="ayuda-busqueda" className="sr-only">
+            Buscar en el centro de ayuda
+          </label>
+          <div className="flex items-center gap-2 rounded-2xl bg-white p-2 shadow-float">
+            <Icon nombre="search" className="ml-2 h-5 w-5 shrink-0 text-ink-3" />
+            <input
+              id="ayuda-busqueda"
+              value={busqueda}
+              onChange={(evento) => {
+                setBusqueda(evento.target.value)
+                setAbierta(null)
+              }}
+              className="min-w-0 flex-1 border-0 bg-transparent py-2 text-[0.9375rem] text-ink placeholder:text-ink-3/70 focus:outline-none"
+              placeholder="Ej: cancelar una reserva, comisión, certificados…"
+            />
           </div>
-        ) : (
-          agrupadas.map((grupo) => (
-            <div key={grupo.id} className="mb-6">
-              <h3 className="mb-2 text-[11.5px] font-bold uppercase tracking-wide text-gray-500">
-                {grupo.titulo}
-              </h3>
-              <ul className="m-0 list-none border-t border-line p-0">
-                {grupo.preguntas.map((item) => {
-                  const clave = `${grupo.id}-${item.pregunta}`
-                  const estaAbierta = abierta === clave
-                  return (
-                    <li key={clave} className="border-b border-[#eeeeee]">
-                      <button
-                        type="button"
-                        onClick={() => setAbierta(estaAbierta ? null : clave)}
-                        className="flex w-full items-center justify-between gap-4 py-3 text-left text-[12.5px] font-bold"
-                        aria-expanded={estaAbierta}
-                      >
-                        <span>{item.pregunta}</span>
-                        <span className="text-[13px] font-normal text-gray-400">
-                          {estaAbierta ? '⌃' : '⌄'}
-                        </span>
-                      </button>
-                      {estaAbierta && (
-                        <p className="mb-3 max-w-3xl text-[12.5px] leading-relaxed text-gray-600">
-                          {item.respuesta}
-                        </p>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          ))
-        )}
-      </section>
+          <p className="mt-3 text-center text-[0.75rem] text-white/60">
+            {PREGUNTAS.length} respuestas sobre reservas, pagos y profesionales.
+          </p>
+        </div>
+      </div>
 
-      <section className="border-t border-gray-100 px-8 py-7">
-        <div className="flex flex-wrap items-center justify-between gap-4 border border-line bg-[#f5f5f5] px-5 py-4">
-          <div>
-            <p className="text-[14px] font-bold">¿No encontraste lo que buscabas?</p>
-            <p className="mt-1 text-[11.5px] text-gray-600">{CONTACTO.horario}</p>
-            <a
-              href={correo}
-              className="mt-1 inline-block text-[11.5px] text-black underline"
+      <div className="mb-7 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {CATEGORIAS_AYUDA.map((grupo, indice) => {
+          const activa = categoria === grupo.id
+          const estilo = ESTILOS_CATEGORIA[indice % ESTILOS_CATEGORIA.length]
+          return (
+            <button
+              key={grupo.id}
+              type="button"
+              onClick={() => {
+                setCategoria(activa ? '' : grupo.id)
+                setAbierta(null)
+              }}
+              className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition ${
+                activa
+                  ? 'border-brand-blue bg-white shadow-float ring-4 ring-brand-blue/10'
+                  : 'border-line bg-white shadow-card hover:border-ink-3/40 hover:shadow-float'
+              }`}
+              aria-pressed={activa}
             >
-              {CONTACTO.email}
-            </a>
-          </div>
-          <a
-            href={correo}
-            className="border border-black bg-black px-5 py-2.5 text-[12.5px] text-white no-underline"
-          >
-            Contactar a soporte
-          </a>
-        </div>
-      </section>
+              <span
+                className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${estilo.clase}`}
+              >
+                <Icon nombre={estilo.icono} className="h-5 w-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[0.875rem] font-bold text-ink">
+                  {grupo.titulo}
+                </span>
+                <span className="mt-0.5 block text-[0.75rem] leading-relaxed text-ink-3">
+                  {grupo.descripcion}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {categoria && (
+        <button
+          type="button"
+          onClick={() => setCategoria('')}
+          className="mb-4 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-blue-deep hover:underline"
+        >
+          <Icon nombre="x-circle" className="h-3.5 w-3.5" />
+          Ver todas las categorías
+        </button>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_300px] lg:items-start">
+        <section className="min-w-0">
+          <h2 className="mb-4 text-[1.25rem] font-extrabold tracking-[-0.02em] text-ink">
+            Preguntas frecuentes
+          </h2>
+
+          {agrupadas.length === 0 ? (
+            <EmptyState
+              icono="message"
+              titulo="No encontramos resultados"
+              accion={
+                <BotonEnlace href={correo} variante="secundario">
+                  Escribir a soporte
+                </BotonEnlace>
+              }
+            >
+              Prueba con otra palabra o escríbenos directamente.
+            </EmptyState>
+          ) : (
+            <div className="space-y-6">
+              {agrupadas.map((grupo) => (
+                <div key={grupo.id}>
+                  <h3 className="mb-2 text-[0.75rem] font-bold uppercase tracking-[0.1em] text-ink-3">
+                    {grupo.titulo}
+                  </h3>
+                  <Card className="overflow-hidden">
+                    <ul className="divide-y divide-line">
+                      {grupo.preguntas.map((item) => {
+                        const clave = `${grupo.id}-${item.pregunta}`
+                        const estaAbierta = abierta === clave
+                        return (
+                          <li key={clave}>
+                            <button
+                              type="button"
+                              onClick={() => setAbierta(estaAbierta ? null : clave)}
+                              className="flex w-full items-center justify-between gap-4 px-4 py-3.5 text-left text-[0.875rem] font-bold text-ink transition hover:bg-canvas sm:px-5"
+                              aria-expanded={estaAbierta}
+                            >
+                              <span>{item.pregunta}</span>
+                              <Icon
+                                nombre="chevron"
+                                className={`h-4 w-4 shrink-0 text-ink-3 transition ${
+                                  estaAbierta ? 'rotate-180' : ''
+                                }`}
+                              />
+                            </button>
+                            {estaAbierta && (
+                              <p className="px-4 pb-4 text-[0.875rem] leading-relaxed text-ink-2 sm:px-5">
+                                {item.respuesta}
+                              </p>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <aside className="lg:sticky lg:top-24">
+          <Card className="overflow-hidden">
+            <div className="bg-navy-950 px-5 py-5 text-white">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-brand-mint">
+                <Icon nombre="message" className="h-5 w-5" />
+              </span>
+              <p className="mt-3 text-[1rem] font-bold">¿No encontraste lo que buscabas?</p>
+              <p className="mt-1 text-[0.8125rem] leading-relaxed text-white/70">
+                {CONTACTO.horario}
+              </p>
+            </div>
+            <div className="px-5 py-4">
+              <a
+                href={correo}
+                className="flex items-center gap-2 text-[0.8125rem] font-semibold text-ink-2 no-underline hover:text-brand-blue-deep"
+              >
+                <Icon nombre="mail" className="h-4 w-4 text-brand-blue" />
+                {CONTACTO.email}
+              </a>
+              <BotonEnlace href={correo} className="mt-4 w-full" tamano="sm">
+                Contactar a soporte
+              </BotonEnlace>
+            </div>
+          </Card>
+        </aside>
+      </div>
     </div>
   )
 }

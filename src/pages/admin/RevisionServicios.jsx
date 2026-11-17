@@ -8,7 +8,17 @@ import {
 } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import StatusBadge from '../../components/StatusBadge'
+import { Encabezado } from '../../components/admin/ui'
+import {
+  Boton,
+  Card,
+  Chip,
+  EmptyState,
+  Skeleton,
+  Textarea,
+} from '../../components/ui'
 import { formatearCLP } from '../../lib/formato'
 
 const FILTROS = [
@@ -20,6 +30,18 @@ const FILTROS = [
   ['', 'Todos'],
 ]
 
+function SkeletonServicio() {
+  return (
+    <div className="rounded-[20px] border border-line bg-white p-5 shadow-card">
+      <div className="space-y-2.5">
+        <Skeleton className="h-4 w-2/5" />
+        <Skeleton className="h-3.5 w-1/3" />
+        <Skeleton className="h-3.5 w-3/5" />
+      </div>
+    </div>
+  )
+}
+
 export default function RevisionServicios() {
   const [estado, setEstado] = useState('en_revision')
   const [servicios, setServicios] = useState([])
@@ -27,6 +49,8 @@ export default function RevisionServicios() {
   const [error, setError] = useState('')
   const [moderando, setModerando] = useState(null)
   const [comentario, setComentario] = useState('')
+  const [aprobando, setAprobando] = useState(null)
+  const [enviando, setEnviando] = useState(false)
 
   function cargar() {
     setCargando(true)
@@ -42,11 +66,14 @@ export default function RevisionServicios() {
 
   async function aprobarServicio(id) {
     setError('')
+    setAprobando(id)
     try {
       await aprobar(id)
       cargar()
     } catch (err) {
       setError(mensajeDeError(err))
+    } finally {
+      setAprobando(null)
     }
   }
 
@@ -56,6 +83,7 @@ export default function RevisionServicios() {
       return
     }
     setError('')
+    setEnviando(true)
     try {
       if (moderando.tipo === 'devolver') await devolver(moderando.id, comentario.trim())
       else await rechazar(moderando.id, comentario.trim())
@@ -64,29 +92,27 @@ export default function RevisionServicios() {
       cargar()
     } catch (err) {
       setError(mensajeDeError(err))
+    } finally {
+      setEnviando(false)
     }
   }
 
   return (
-    <div className="pt-6">
-      <h1 className="text-[20px] font-bold">Revisión de servicios</h1>
-      <p className="mb-5 text-[12.5px] text-gray-500">
-        Aprueba, devuelve con comentarios o rechaza los servicios enviados por
-        profesionales.
-      </p>
+    <div>
+      <Encabezado
+        titulo="Revisión de servicios"
+        descripcion="Aprueba, devuelve con comentarios o rechaza los servicios enviados por profesionales."
+      />
 
       <div className="mb-4 flex flex-wrap gap-2">
         {FILTROS.map(([clave, etiqueta]) => (
-          <button
+          <Chip
             key={clave}
-            type="button"
+            activo={estado === clave}
             onClick={() => setEstado(clave)}
-            className={`border px-3 py-1.5 text-[12px] ${
-              estado === clave ? 'border-black bg-black text-white' : 'border-line'
-            }`}
           >
             {etiqueta}
-          </button>
+          </Chip>
         ))}
       </div>
 
@@ -97,99 +123,116 @@ export default function RevisionServicios() {
       )}
 
       {cargando ? (
-        <p className="text-[13px] text-gray-500">Cargando…</p>
+        <div className="space-y-3">
+          {[0, 1, 2].map((indice) => (
+            <SkeletonServicio key={indice} />
+          ))}
+        </div>
       ) : servicios.length === 0 ? (
-        <p className="text-[13px] text-gray-500">No hay servicios en este estado.</p>
+        <EmptyState icono="layout" titulo="No hay servicios en este estado">
+          Cuando un profesional envíe un servicio a revisión, aparecerá aquí.
+        </EmptyState>
       ) : (
         <ul className="space-y-3">
           {servicios.map((servicio) => (
-            <li key={servicio.id} className="border border-line px-4 py-3.5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[14px] font-bold">{servicio.titulo}</p>
-                  <p className="text-[11.5px] text-gray-500">
-                    {servicio.profesional_nombre} · {servicio.categoria?.nombre} ·{' '}
-                    {formatearCLP(servicio.precio)}
-                  </p>
-                  {servicio.descripcion_corta && (
-                    <p className="mt-1 text-[12px] text-gray-600">
-                      {servicio.descripcion_corta}
-                    </p>
-                  )}
-                  {servicio.comentarios_admin && (
-                    <p className="mt-1 text-[11.5px] italic text-orange-700">
-                      Comentario: {servicio.comentarios_admin}
-                    </p>
-                  )}
+            <li key={servicio.id}>
+              <Card className="p-4 sm:p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 items-start gap-3.5">
+                    <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-blue-soft text-brand-blue-deep">
+                      <Icon nombre="layout" className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[0.9375rem] font-bold text-ink">
+                        {servicio.titulo}
+                      </p>
+                      <p className="mt-1 text-[0.8125rem] text-ink-3">
+                        {servicio.profesional_nombre} ·{' '}
+                        {servicio.categoria?.nombre || 'Sin categoría'} ·{' '}
+                        <span className="font-semibold text-ink-2">
+                          {formatearCLP(servicio.precio)}
+                        </span>
+                      </p>
+                      {servicio.descripcion_corta && (
+                        <p className="mt-2 text-[0.8125rem] leading-relaxed text-ink-2">
+                          {servicio.descripcion_corta}
+                        </p>
+                      )}
+                      {servicio.comentarios_admin && (
+                        <p className="mt-2 rounded-lg bg-warn-soft px-2.5 py-1.5 text-[0.75rem] font-semibold text-warn">
+                          {servicio.comentarios_admin}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <StatusBadge estado={servicio.estado} />
                 </div>
-                <StatusBadge estado={servicio.estado} />
-              </div>
 
-              {servicio.estado === 'en_revision' && (
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => aprobarServicio(servicio.id)}
-                    className="border border-black bg-black px-3 py-1.5 text-[12px] text-white"
-                  >
-                    Aprobar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setModerando({ id: servicio.id, tipo: 'devolver' })
-                      setComentario('')
-                    }}
-                    className="border border-black px-3 py-1.5 text-[12px]"
-                  >
-                    Devolver
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setModerando({ id: servicio.id, tipo: 'rechazar' })
-                      setComentario('')
-                    }}
-                    className="border border-brand-red px-3 py-1.5 text-[12px] text-brand-red"
-                  >
-                    Rechazar
-                  </button>
-                </div>
-              )}
-
-              {moderando?.id === servicio.id && (
-                <div className="mt-3 border border-line bg-[#f7f7f7] p-3">
-                  <textarea
-                    className="min-h-20 w-full border border-gray-400 px-3 py-2 text-[12.5px] outline-none"
-                    placeholder={
-                      moderando.tipo === 'devolver'
-                        ? 'Indica qué debe corregir el profesional'
-                        : 'Motivo del rechazo'
-                    }
-                    value={comentario}
-                    onChange={(e) => setComentario(e.target.value)}
-                  />
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={enviarModeracion}
-                      className="border border-black bg-black px-3 py-1.5 text-[12px] text-white"
+                {servicio.estado === 'en_revision' && (
+                  <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
+                    <Boton
+                      tamano="sm"
+                      cargando={aprobando === servicio.id}
+                      onClick={() => aprobarServicio(servicio.id)}
                     >
-                      Confirmar {moderando.tipo}
-                    </button>
-                    <button
-                      type="button"
+                      <Icon nombre="check" className="h-4 w-4" />
+                      Aprobar
+                    </Boton>
+                    <Boton
+                      tamano="sm"
+                      variante="secundario"
                       onClick={() => {
-                        setModerando(null)
+                        setModerando({ id: servicio.id, tipo: 'devolver' })
                         setComentario('')
                       }}
-                      className="border border-line px-3 py-1.5 text-[12px]"
                     >
-                      Cancelar
-                    </button>
+                      <Icon nombre="arrow-left" className="h-4 w-4" />
+                      Devolver
+                    </Boton>
+                    <Boton
+                      tamano="sm"
+                      variante="peligro"
+                      onClick={() => {
+                        setModerando({ id: servicio.id, tipo: 'rechazar' })
+                        setComentario('')
+                      }}
+                    >
+                      Rechazar
+                    </Boton>
                   </div>
-                </div>
-              )}
+                )}
+
+                {moderando?.id === servicio.id && (
+                  <div className="mt-3 rounded-xl border border-line bg-canvas/60 p-3.5">
+                    <Textarea
+                      className="min-h-20 bg-white"
+                      rows={3}
+                      placeholder={
+                        moderando.tipo === 'devolver'
+                          ? 'Indica qué debe corregir el profesional'
+                          : 'Motivo del rechazo'
+                      }
+                      value={comentario}
+                      onChange={(e) => setComentario(e.target.value)}
+                    />
+                    <div className="mt-2.5 flex gap-2">
+                      <Boton tamano="sm" cargando={enviando} onClick={enviarModeracion}>
+                        Confirmar {moderando.tipo}
+                      </Boton>
+                      <Boton
+                        tamano="sm"
+                        variante="fantasma"
+                        onClick={() => {
+                          setModerando(null)
+                          setComentario('')
+                        }}
+                      >
+                        Cancelar
+                      </Boton>
+                    </div>
+                  </div>
+                )}
+              </Card>
             </li>
           ))}
         </ul>

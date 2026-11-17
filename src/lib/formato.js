@@ -12,51 +12,51 @@ export function montoNeto(precio) {
 }
 
 export const ESTADOS_SERVICIO = {
-  borrador: { etiqueta: 'Borrador', clase: 'bg-gray-100 text-gray-600' },
-  en_revision: { etiqueta: 'En revisión', clase: 'bg-amber-100 text-amber-700' },
-  aprobado: { etiqueta: 'Aprobado', clase: 'bg-green-100 text-green-700' },
-  rechazado: { etiqueta: 'Rechazado', clase: 'bg-red-100 text-red-700' },
-  devuelto: { etiqueta: 'Devuelto', clase: 'bg-amber-100 text-amber-800' },
-  suspendido: { etiqueta: 'Suspendido', clase: 'bg-gray-200 text-gray-600' },
+  borrador: { etiqueta: 'Borrador', clase: 'bg-canvas text-ink-3' },
+  en_revision: { etiqueta: 'En revisión', clase: 'bg-warn-soft text-warn' },
+  aprobado: { etiqueta: 'Aprobado', clase: 'bg-ok-soft text-ok' },
+  rechazado: { etiqueta: 'Rechazado', clase: 'bg-danger-soft text-danger' },
+  devuelto: { etiqueta: 'Devuelto', clase: 'bg-warn-soft text-warn' },
+  suspendido: { etiqueta: 'Suspendido', clase: 'bg-canvas text-ink-3' },
 }
 
 // Estados de la postulación y de sus certificados.
 export const ESTADOS_POSTULACION = {
-  pendiente: { etiqueta: 'Pendiente', clase: 'bg-amber-100 text-amber-800' },
-  aprobada: { etiqueta: 'Aprobada', clase: 'bg-green-100 text-green-700' },
-  rechazada: { etiqueta: 'Rechazada', clase: 'bg-red-100 text-red-700' },
-  devuelta: { etiqueta: 'Devuelta', clase: 'bg-amber-100 text-amber-800' },
+  pendiente: { etiqueta: 'Pendiente', clase: 'bg-warn-soft text-warn' },
+  aprobada: { etiqueta: 'Aprobada', clase: 'bg-ok-soft text-ok' },
+  rechazada: { etiqueta: 'Rechazada', clase: 'bg-danger-soft text-danger' },
+  devuelta: { etiqueta: 'Devuelta', clase: 'bg-warn-soft text-warn' },
 }
 
 export const ESTADOS_CERTIFICADO = {
   verificado_automatico: {
     etiqueta: 'Verificado automáticamente',
-    clase: 'bg-green-100 text-green-700',
+    clase: 'bg-ok-soft text-ok',
   },
-  sin_reviewer: { etiqueta: 'Sin revisar', clase: 'bg-amber-100 text-amber-800' },
-  aprobado: { etiqueta: 'Aprobado', clase: 'bg-green-100 text-green-700' },
-  rechazado: { etiqueta: 'Rechazado', clase: 'bg-red-100 text-red-700' },
+  sin_reviewer: { etiqueta: 'Sin revisar', clase: 'bg-warn-soft text-warn' },
+  aprobado: { etiqueta: 'Aprobado', clase: 'bg-ok-soft text-ok' },
+  rechazado: { etiqueta: 'Rechazado', clase: 'bg-danger-soft text-danger' },
 }
 
 // Estados de la reserva (Sprint 3).
 export const ESTADOS_RESERVA = {
   pendiente_pago: {
     etiqueta: 'Pendiente de pago',
-    clase: 'bg-amber-100 text-amber-800',
+    clase: 'bg-warn-soft text-warn',
   },
   pendiente_aceptacion: {
     etiqueta: 'Pendiente de aceptación',
-    clase: 'bg-amber-100 text-amber-800',
+    clase: 'bg-warn-soft text-warn',
   },
-  en_curso: { etiqueta: 'En curso', clase: 'bg-sky text-navy' },
+  en_curso: { etiqueta: 'En curso', clase: 'bg-info-soft text-info' },
   entregado_por_confirmar: {
     etiqueta: 'Entregado — confirmar',
-    clase: 'bg-amber-100 text-amber-800',
+    clase: 'bg-warn-soft text-warn',
   },
-  finalizada: { etiqueta: 'Finalizada', clase: 'bg-green-100 text-green-700' },
-  cancelada: { etiqueta: 'Cancelada', clase: 'bg-gray-200 text-gray-600' },
-  vencida: { etiqueta: 'Vencida', clase: 'bg-gray-200 text-gray-500' },
-  con_disputa: { etiqueta: 'Con disputa', clase: 'bg-red-100 text-red-700' },
+  finalizada: { etiqueta: 'Finalizada', clase: 'bg-ok-soft text-ok' },
+  cancelada: { etiqueta: 'Cancelada', clase: 'bg-canvas text-ink-3' },
+  vencida: { etiqueta: 'Vencida', clase: 'bg-canvas text-ink-3' },
+  con_disputa: { etiqueta: 'Con disputa', clase: 'bg-danger-soft text-danger' },
 }
 
 export function etiquetaEstadoReserva(estado) {
@@ -138,21 +138,21 @@ export function hace(fechaISO) {
 }
 
 export const ESTADOS_DISPUTA = {
-  abierta: { etiqueta: 'Abierta', clase: 'bg-red-100 text-red-700' },
-  en_revision: { etiqueta: 'En revisión', clase: 'bg-amber-100 text-amber-800' },
-  resuelta: { etiqueta: 'Resuelta', clase: 'bg-green-100 text-green-700' },
+  abierta: { etiqueta: 'Abierta', clase: 'bg-danger-soft text-danger' },
+  en_revision: { etiqueta: 'En revisión', clase: 'bg-warn-soft text-warn' },
+  resuelta: { etiqueta: 'Resuelta', clase: 'bg-ok-soft text-ok' },
 }
 
 export const RESULTADOS_DISPUTA = {
   a_favor_organizacion: {
     etiqueta: 'A favor de la organización',
-    clase: 'bg-sky text-navy',
+    clase: 'bg-info-soft text-info',
   },
   a_favor_profesional: {
     etiqueta: 'A favor del profesional',
-    clase: 'bg-green-100 text-green-700',
+    clase: 'bg-ok-soft text-ok',
   },
-  division: { etiqueta: 'División', clase: 'bg-amber-100 text-amber-800' },
+  division: { etiqueta: 'División', clase: 'bg-warn-soft text-warn' },
 }
 
 export const ESTADOS_PAGO = {
@@ -171,10 +171,10 @@ export const ESTADOS_PAGO = {
 }
 
 export const ESTADOS_PROFESIONAL = {
-  postulando: { etiqueta: 'Postulando', clase: 'bg-amber-100 text-amber-800' },
-  aprobado: { etiqueta: 'Aprobado', clase: 'bg-green-100 text-green-700' },
-  rechazado: { etiqueta: 'Rechazado', clase: 'bg-red-100 text-red-700' },
-  suspendido: { etiqueta: 'Suspendido', clase: 'bg-gray-200 text-gray-600' },
+  postulando: { etiqueta: 'Postulando', clase: 'bg-warn-soft text-warn' },
+  aprobado: { etiqueta: 'Aprobado', clase: 'bg-ok-soft text-ok' },
+  rechazado: { etiqueta: 'Rechazado', clase: 'bg-danger-soft text-danger' },
+  suspendido: { etiqueta: 'Suspendido', clase: 'bg-canvas text-ink-3' },
 }
 
 export const FORMATOS = {

@@ -4,7 +4,15 @@ import { Link } from 'react-router-dom'
 import { mensajeDeError } from '../../api/axios'
 import { misSolicitudes } from '../../api/reservas'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import StatusBadge from '../../components/StatusBadge'
+import {
+  Card,
+  Chip,
+  EmptyState,
+  PageHeader,
+  Skeleton,
+} from '../../components/ui'
 import {
   ESTADOS_RESERVA,
   formatearCLP,
@@ -19,6 +27,24 @@ const FILTROS = [
   { valor: 'entregado_por_confirmar', etiqueta: 'Por confirmar' },
   { valor: 'finalizada', etiqueta: 'Finalizadas' },
 ]
+
+function SkeletonSolicitud() {
+  return (
+    <div className="flex flex-col gap-4 rounded-[20px] border border-line bg-white p-4 shadow-card sm:flex-row sm:items-center sm:justify-between sm:p-5">
+      <div className="flex items-center gap-3.5">
+        <Skeleton className="h-11 w-11 rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-3.5 w-40" />
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-5 w-20" />
+        <Skeleton className="h-6 w-28 rounded-full" />
+      </div>
+    </div>
+  )
+}
 
 export default function MisSolicitudes() {
   const [solicitudes, setSolicitudes] = useState([])
@@ -37,23 +63,22 @@ export default function MisSolicitudes() {
   useEffect(cargar, [cargar])
 
   return (
-    <div className="pt-6">
-      <h1 className="mb-4 text-[20px] font-bold">Solicitudes</h1>
+    <div>
+      <PageHeader
+        etiqueta="Panel profesional"
+        titulo="Solicitudes"
+        descripcion="Responde a tiempo las solicitudes de las organizaciones y coordina la entrega de cada servicio."
+      />
 
       <div className="mb-5 flex flex-wrap gap-2">
         {FILTROS.map((opcion) => (
-          <button
+          <Chip
             key={opcion.valor}
-            type="button"
+            activo={filtro === opcion.valor}
             onClick={() => setFiltro(opcion.valor)}
-            className={`border px-3.5 py-1.5 text-[12.5px] ${
-              filtro === opcion.valor
-                ? 'border-black bg-black text-white'
-                : 'border-gray-300'
-            }`}
           >
             {opcion.etiqueta}
-          </button>
+          </Chip>
         ))}
       </div>
 
@@ -64,35 +89,58 @@ export default function MisSolicitudes() {
       )}
 
       {cargando ? (
-        <p className="text-[13px] text-gray-500">Cargando…</p>
+        <div className="space-y-3">
+          {[0, 1, 2].map((indice) => (
+            <SkeletonSolicitud key={indice} />
+          ))}
+        </div>
       ) : solicitudes.length === 0 ? (
-        <p className="text-[13px] text-gray-500">
-          No hay solicitudes en este estado.
-        </p>
+        <EmptyState icono="message" titulo="No hay solicitudes en este estado">
+          Cuando una organización reserve uno de tus servicios, aparecerá aquí para
+          que la aceptes o rechaces.
+        </EmptyState>
       ) : (
-        <ul className="space-y-3.5">
+        <ul className="space-y-3">
           {solicitudes.map((solicitud) => (
-            <li key={solicitud.id} className="border border-line">
-              <Link
-                to={`/profesional/solicitudes/${solicitud.id}`}
-                className="flex items-center justify-between px-4 py-3.5 no-underline"
-              >
-                <div>
-                  <p className="text-[14px] font-bold">{solicitud.servicio.titulo}</p>
-                  <p className="text-[12px] text-gray-500">
-                    {solicitud.organizacion_nombre || solicitud.contacto_nombre} ·{' '}
-                    {formatearFecha(solicitud.fecha)} ·{' '}
-                    {formatearHora(solicitud.hora_inicio)}–
-                    {formatearHora(solicitud.hora_fin)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-[14px] font-bold text-navy">
-                    {formatearCLP(solicitud.monto_neto)}
-                  </span>
-                  <StatusBadge estado={solicitud.estado} mapa={ESTADOS_RESERVA} />
-                </div>
-              </Link>
+            <li key={solicitud.id}>
+              <Card className="transition hover:border-brand-blue/30 hover:shadow-float">
+                <Link
+                  to={`/profesional/solicitudes/${solicitud.id}`}
+                  className="group flex flex-col gap-4 p-4 no-underline sm:flex-row sm:items-center sm:justify-between sm:p-5"
+                >
+                  <div className="flex min-w-0 items-start gap-3.5">
+                    <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-mint-soft text-brand-mint-deep">
+                      <Icon nombre="calendar" className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-[0.9375rem] font-bold text-ink transition group-hover:text-brand-blue-deep">
+                        {solicitud.servicio.titulo}
+                      </p>
+                      <p className="mt-1 text-[0.8125rem] text-ink-3">
+                        {solicitud.organizacion_nombre || solicitud.contacto_nombre} ·{' '}
+                        {formatearFecha(solicitud.fecha)} ·{' '}
+                        {formatearHora(solicitud.hora_inicio)}–
+                        {formatearHora(solicitud.hora_fin)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
+                    <div className="text-right">
+                      <p className="text-[0.9375rem] font-extrabold text-ink">
+                        {formatearCLP(solicitud.monto_neto)}
+                      </p>
+                      <p className="text-[0.6875rem] font-semibold text-ink-3">
+                        Monto neto
+                      </p>
+                    </div>
+                    <StatusBadge estado={solicitud.estado} mapa={ESTADOS_RESERVA} />
+                    <Icon
+                      nombre="arrow-right"
+                      className="hidden h-4 w-4 text-ink-3 transition group-hover:translate-x-0.5 group-hover:text-brand-blue sm:block"
+                    />
+                  </div>
+                </Link>
+              </Card>
             </li>
           ))}
         </ul>

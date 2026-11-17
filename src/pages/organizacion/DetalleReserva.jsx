@@ -6,7 +6,19 @@ import { abrirDisputa } from '../../api/disputas'
 import { iniciarPago } from '../../api/pagos'
 import { cancelarReserva, obtenerReserva } from '../../api/reservas'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import StatusBadge from '../../components/StatusBadge'
+import {
+  Boton,
+  BotonEnlace,
+  Campo,
+  Card,
+  Cargando,
+  Input,
+  Migas,
+  Precio,
+  Textarea,
+} from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import {
   ESTADOS_DISPUTA,
@@ -22,9 +34,11 @@ import { irAWebpay } from '../../lib/webpay'
 
 function Fila({ etiqueta, children }) {
   return (
-    <div className="flex justify-between gap-4 py-2.5">
-      <span className="text-gray-500">{etiqueta}</span>
-      <span className="text-right">{children}</span>
+    <div className="flex items-start justify-between gap-4 py-2.5">
+      <span className="shrink-0 text-[0.8125rem] text-ink-3">{etiqueta}</span>
+      <span className="text-right text-[0.875rem] font-semibold text-ink">
+        {children}
+      </span>
     </div>
   )
 }
@@ -113,16 +127,15 @@ export default function DetalleReserva() {
     }
   }
 
-  if (cargando) {
-    return <p className="p-8 text-center text-sm text-gray-500">Cargando…</p>
-  }
+  if (cargando) return <Cargando>Consultando la reserva…</Cargando>
+
   if (!reserva) {
     return (
-      <div className="py-10 text-center">
+      <div className="mx-auto max-w-lg py-10 text-center">
         <Alerta>{error || 'No encontramos esta reserva.'}</Alerta>
-        <Link to="/catalogo" className="mt-4 inline-block text-[13px] underline">
+        <BotonEnlace to="/catalogo" variante="secundario" className="mt-5">
           Volver al catálogo
-        </Link>
+        </BotonEnlace>
       </div>
     )
   }
@@ -142,65 +155,65 @@ export default function DetalleReserva() {
     Boolean(token)
 
   return (
-    <div className="mx-auto max-w-3xl pt-5">
-      <Link
-        to={usuario ? '/mis-reservas' : '/catalogo'}
-        className="text-[13px] text-gray-600 no-underline"
-      >
-        &larr; {usuario ? 'Mis reservas' : 'Catálogo'}
-      </Link>
+    <div className="mx-auto max-w-3xl">
+      <Migas
+        className="mb-4"
+        items={[
+          { texto: conSesion ? 'Mis reservas' : 'Catálogo', to: conSesion ? '/mis-reservas' : '/catalogo' },
+          { texto: `Reserva #${reserva.id}` },
+        ]}
+      />
 
-      <div className="mb-4 mt-3 flex items-center justify-between">
-        <h1 className="text-[20px] font-bold">Reserva #{reserva.id}</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-[1.75rem] font-extrabold tracking-[-0.03em] text-ink">
+            Reserva #{reserva.id}
+          </h1>
+          <p className="mt-1 text-[0.8125rem] text-ink-3">
+            Creada para el {formatearFecha(reserva.fecha)} a las {formatearHora(reserva.hora_inicio)}
+          </p>
+        </div>
         <StatusBadge estado={estado} mapa={ESTADOS_RESERVA} />
       </div>
 
-      {aviso && (
-        <div className="mb-4">
-          <Alerta tipo="exito">{aviso}</Alerta>
-        </div>
-      )}
-      {error && (
-        <div className="mb-4">
-          <Alerta>{error}</Alerta>
-        </div>
-      )}
+      <div className="mb-4 space-y-3">
+        {aviso && <Alerta tipo="exito">{aviso}</Alerta>}
+        {error && <Alerta>{error}</Alerta>}
+        {estado === 'finalizada' && (
+          <Alerta tipo="exito" titulo="Servicio entregado y confirmado">
+            El pago fue liberado al profesional. ¡Gracias por usar Skilly!
+          </Alerta>
+        )}
+        {estado === 'pendiente_pago' && (
+          <Alerta tipo="advertencia" titulo="Falta completar el pago">
+            Tu reserva está creada, pero todavía no fue enviada al profesional.
+            Complétala para bloquear el horario.
+          </Alerta>
+        )}
+        {token && ['pendiente_pago', 'pendiente_aceptacion'].includes(estado) && (
+          <Alerta tipo="info" titulo="Guarda este enlace">
+            Te enviamos un correo con el enlace para gestionar y seguir esta reserva.
+            Puedes volver a esta página con el mismo enlace.
+          </Alerta>
+        )}
+      </div>
 
-      {estado === 'finalizada' && (
-        <div className="mb-4 border border-green-300 bg-green-50 px-4 py-3 text-[13px] text-green-800">
-          Servicio entregado y confirmado. ¡Gracias por usar Skilly!
-        </div>
-      )}
-
-      {estado === 'pendiente_pago' && (
-        <div className="mb-4 border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-800">
-          Tu reserva está creada, pero todavía falta el pago. Complétalo para
-          enviarla al profesional y bloquear el horario.
-        </div>
-      )}
-
-      {token && ['pendiente_pago', 'pendiente_aceptacion'].includes(estado) && (
-        <div className="mb-4 border border-amber-300 bg-amber-50 px-4 py-3 text-[12.5px] text-amber-800">
-          Revisa tu correo: te enviamos un enlace para gestionar y seguir esta
-          reserva. Guarda también esta página, puedes volver con el mismo enlace.
-        </div>
-      )}
-
-      <div className="border border-line">
-        <div className="border-b border-line px-4 py-3">
+      <Card className="overflow-hidden">
+        <div className="border-b border-line px-5 py-4 sm:px-6">
           <Link
             to={`/servicios/${reserva.servicio.id}`}
-            className="text-[14px] font-bold no-underline"
+            className="text-[1.0625rem] font-bold text-ink no-underline transition hover:text-brand-blue"
           >
             {reserva.servicio.titulo}
           </Link>
-          <p className="text-[12px] text-gray-500">
+          <p className="mt-1 flex items-center gap-1.5 text-[0.8125rem] text-ink-3">
+            <Icon nombre="calendar" className="h-3.5 w-3.5" />
             {formatearFecha(reserva.fecha)} · {formatearHora(reserva.hora_inicio)}–
             {formatearHora(reserva.hora_fin)}
           </p>
         </div>
 
-        <dl className="divide-y divide-gray-100 px-4 text-[13px]">
+        <dl className="divide-y divide-line px-5 text-[0.875rem] sm:px-6">
           <Fila etiqueta="Modalidad">{FORMATOS[reserva.formato]}</Fila>
           {reserva.ubicacion && <Fila etiqueta="Ubicación">{reserva.ubicacion}</Fila>}
           <Fila etiqueta="Profesional">{reserva.profesional_nombre || 'Por asignar'}</Fila>
@@ -210,208 +223,213 @@ export default function DetalleReserva() {
           {reserva.profesional_telefono && (
             <Fila etiqueta="Teléfono">{reserva.profesional_telefono}</Fila>
           )}
-          <Fila etiqueta="Total">
-            <span className="font-bold text-brand-red">
-              {formatearCLP(reserva.precio_acordado)}
-            </span>
-          </Fila>
+          <div className="flex items-end justify-between gap-4 py-4">
+            <span className="text-[0.875rem] font-semibold text-ink-2">Total</span>
+            <Precio valor={reserva.precio_acordado} nota="" tamano="sm" className="text-right" />
+          </div>
         </dl>
-      </div>
+
+        {mostrandoAcciones && (
+          <div className="flex flex-wrap gap-3 border-t border-line px-5 py-4 sm:px-6">
+            {puedePagar && (
+              <Boton onClick={pagar} cargando={procesando}>
+                {procesando ? 'Abriendo Webpay…' : 'Pagar ahora con Webpay'}
+                {!procesando && <Icon nombre="credit-card" className="h-4 w-4" />}
+              </Boton>
+            )}
+            {puedeConfirmar && (
+              <BotonEnlace to={`/reserva/${reserva.id}/confirmar`}>
+                Confirmar entrega
+              </BotonEnlace>
+            )}
+            {puedeCancelar && (
+              <Boton
+                variante="secundario"
+                disabled={procesando}
+                onClick={() =>
+                  ejecutar(
+                    () => cancelarReserva(reserva.id, 'Cancelada por la organización'),
+                    'Reserva cancelada.',
+                  )
+                }
+              >
+                Cancelar reserva
+              </Boton>
+            )}
+            {puedeReportar && (
+              <Boton variante="peligro" onClick={() => setFormDisputa(true)}>
+                <Icon nombre="alert-triangle" className="h-4 w-4" />
+                Reportar un problema
+              </Boton>
+            )}
+          </div>
+        )}
+      </Card>
 
       {reserva.mensaje && (
-        <div className="mt-4 border border-line px-4 py-3 text-[13px]">
-          <p className="mb-1 text-[12px] font-bold text-gray-500">Tu mensaje</p>
-          <p>{reserva.mensaje}</p>
-        </div>
-      )}
-
-      {disputa && (
-        <div className="mt-4 border border-red-300 px-4 py-3 text-[13px]">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <p className="font-bold">Disputa #{disputa.id}</p>
-            <StatusBadge estado={disputa.estado} mapa={ESTADOS_DISPUTA} />
-          </div>
-          <p className="mb-1">
-            <b>Motivo:</b> {disputa.motivo}
+        <Card className="mt-4 px-5 py-4 sm:px-6">
+          <p className="mb-1 flex items-center gap-1.5 text-[0.75rem] font-bold uppercase tracking-[0.08em] text-ink-3">
+            <Icon nombre="message" className="h-3.5 w-3.5" />
+            Tu mensaje
           </p>
-          {disputa.descripcion && <p className="mb-1">{disputa.descripcion}</p>}
-          <p className="text-[12px] text-gray-500">
-            Abierta el {formatearFechaHora(disputa.creada_en)}
-          </p>
-
-          {disputa.evidencias?.length > 0 && (
-            <div className="mt-3">
-              <p className="mb-1 text-[12px] font-bold text-gray-500">Evidencia</p>
-              <ul className="space-y-1">
-                {disputa.evidencias.map((archivo) => (
-                  <li key={archivo.id} className="text-[12.5px]">
-                    {archivo.archivo ? (
-                      <a
-                        href={archivo.archivo}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline"
-                      >
-                        {archivo.nombre || `Archivo ${archivo.id}`}
-                      </a>
-                    ) : (
-                      archivo.nombre || `Archivo ${archivo.id}`
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {disputa.estado === 'resuelta' && (
-            <div className="mt-3 border-t border-red-200 pt-3">
-              <p className="mb-1">
-                <b>Resultado:</b>{' '}
-                {RESULTADOS_DISPUTA[disputa.resultado]?.etiqueta || disputa.resultado}
-              </p>
-              {disputa.monto_reembolso && (
-                <p className="mb-1">
-                  <b>Reembolso:</b> {formatearCLP(disputa.monto_reembolso)}
-                </p>
-              )}
-              {disputa.resolucion && <p>{disputa.resolucion}</p>}
-              {disputa.resuelta_en && (
-                <p className="mt-1 text-[12px] text-gray-500">
-                  Resuelta el {formatearFechaHora(disputa.resuelta_en)}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {formDisputa && (
-        <form
-          onSubmit={enviarDisputa}
-          className="mt-4 border border-red-300 px-4 py-4 text-[13px]"
-        >
-          <p className="mb-3 font-bold">Reportar un problema</p>
-          <label className="mb-1 block text-[12px] font-bold text-gray-500">
-            Motivo
-          </label>
-          <input
-            value={motivoDisputa}
-            onChange={(e) => setMotivoDisputa(e.target.value)}
-            maxLength={200}
-            required
-            placeholder="Ej: Entrega incompleta"
-            className="mb-3 w-full border border-gray-400 px-3 py-2 text-[13px] outline-none"
-          />
-          <label className="mb-1 block text-[12px] font-bold text-gray-500">
-            Descripción
-          </label>
-          <textarea
-            value={descripcionDisputa}
-            onChange={(e) => setDescripcionDisputa(e.target.value)}
-            rows={3}
-            maxLength={2000}
-            placeholder="Cuéntanos qué ocurrió con el servicio."
-            className="mb-3 w-full border border-gray-400 px-3 py-2 text-[13px] outline-none"
-          />
-          <label className="mb-1 block text-[12px] font-bold text-gray-500">
-            Evidencia (opcional, PDF/JPG/PNG hasta 5 MB)
-          </label>
-          <input
-            type="file"
-            accept="application/pdf,image/jpeg,image/png"
-            onChange={(e) => setEvidenciaDisputa(e.target.files?.[0] || null)}
-            className="mb-4 block text-[12px]"
-          />
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={enviandoDisputa}
-              className="border border-black bg-black px-4 py-2 text-[13px] text-white disabled:opacity-50"
-            >
-              {enviandoDisputa ? 'Enviando…' : 'Abrir disputa'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setFormDisputa(false)}
-              className="border border-black px-4 py-2 text-[13px]"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
+          <p className="text-[0.875rem] leading-relaxed text-ink-2">{reserva.mensaje}</p>
+        </Card>
       )}
 
       {estado === 'pendiente_aceptacion' && (
-        <p className="mt-4 text-[12.5px] text-gray-500">
+        <p className="mt-4 flex items-start gap-2 text-[0.8125rem] leading-relaxed text-ink-3">
+          <Icon nombre="clock" className="mt-0.5 h-4 w-4 shrink-0" />
           El profesional tiene un plazo de 6 horas para responder. Si no lo hace, la
           reserva se libera automáticamente y no se te cobra.
         </p>
       )}
+
       {estado === 'cancelada' && reserva.motivo_cancelacion && (
-        <p className="mt-4 text-[12.5px] text-gray-500">
+        <p className="mt-4 text-[0.8125rem] text-ink-3">
           Motivo de cancelación: {reserva.motivo_cancelacion}
         </p>
       )}
 
       {requiereSesion && (
-        <div className="mt-5 border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-800">
-          Para confirmar la entrega, cancelar o reportar un problema necesitas{' '}
-          <Link
-            to="/login"
-            state={{ desde: `/reserva/${reserva.id}${token ? `?token=${token}` : ''}` }}
-            className="underline"
-          >
-            iniciar sesión
-          </Link>
-          . Guardamos tu enlace de seguimiento.
+        <div className="mt-5">
+          <Alerta tipo="advertencia" titulo="Necesitas iniciar sesión">
+            Para confirmar la entrega, cancelar o reportar un problema necesitas{' '}
+            <Link
+              to="/login"
+              state={{ desde: `/reserva/${reserva.id}${token ? `?token=${token}` : ''}` }}
+              className="font-bold underline underline-offset-2"
+            >
+              iniciar sesión
+            </Link>
+            . Guardamos tu enlace de seguimiento.
+          </Alerta>
         </div>
       )}
 
-      {mostrandoAcciones && (
-        <div className="mt-6 flex flex-wrap gap-3">
-          {puedePagar && (
-            <button
-              type="button"
-              disabled={procesando}
-              onClick={pagar}
-              className="border border-black bg-black px-5 py-2.5 text-[13px] text-white disabled:opacity-50"
+      {disputa && (
+        <Card className="mt-4 overflow-hidden border-danger/25">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-danger/15 bg-danger-soft/60 px-5 py-3.5">
+            <p className="flex items-center gap-2 text-[0.9375rem] font-bold text-danger">
+              <Icon nombre="alert-triangle" className="h-4 w-4" />
+              Disputa #{disputa.id}
+            </p>
+            <StatusBadge estado={disputa.estado} mapa={ESTADOS_DISPUTA} />
+          </div>
+          <div className="space-y-2 px-5 py-4 text-[0.875rem]">
+            <p>
+              <span className="font-bold text-ink">Motivo: </span>
+              <span className="text-ink-2">{disputa.motivo}</span>
+            </p>
+            {disputa.descripcion && (
+              <p className="leading-relaxed text-ink-2">{disputa.descripcion}</p>
+            )}
+            <p className="text-[0.75rem] text-ink-3">
+              Abierta el {formatearFechaHora(disputa.creada_en)}
+            </p>
+
+            {disputa.evidencias?.length > 0 && (
+              <div className="pt-2">
+                <p className="mb-1.5 text-[0.75rem] font-bold uppercase tracking-[0.08em] text-ink-3">
+                  Evidencia
+                </p>
+                <ul className="space-y-1">
+                  {disputa.evidencias.map((archivo) => (
+                    <li key={archivo.id} className="text-[0.8125rem]">
+                      {archivo.archivo ? (
+                        <a
+                          href={archivo.archivo}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 font-semibold text-brand-blue-deep hover:underline"
+                        >
+                          {archivo.nombre || `Archivo ${archivo.id}`}
+                          <Icon nombre="external" className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        archivo.nombre || `Archivo ${archivo.id}`
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {disputa.estado === 'resuelta' && (
+              <div className="mt-3 rounded-xl bg-canvas px-4 py-3">
+                <p>
+                  <span className="font-bold text-ink">Resultado: </span>
+                  {RESULTADOS_DISPUTA[disputa.resultado]?.etiqueta || disputa.resultado}
+                </p>
+                {disputa.monto_reembolso && (
+                  <p>
+                    <span className="font-bold text-ink">Reembolso: </span>
+                    {formatearCLP(disputa.monto_reembolso)}
+                  </p>
+                )}
+                {disputa.resolucion && (
+                  <p className="mt-1 leading-relaxed text-ink-2">{disputa.resolucion}</p>
+                )}
+                {disputa.resuelta_en && (
+                  <p className="mt-1 text-[0.75rem] text-ink-3">
+                    Resuelta el {formatearFechaHora(disputa.resuelta_en)}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {formDisputa && (
+        <Card as="form" onSubmit={enviarDisputa} className="mt-4 p-5 sm:p-6">
+          <p className="mb-4 flex items-center gap-2 text-[1.0625rem] font-bold text-ink">
+            <Icon nombre="alert-triangle" className="h-4 w-4 text-danger" />
+            Reportar un problema
+          </p>
+          <div className="space-y-4">
+            <Campo etiqueta="Motivo" htmlFor="motivo" requerido>
+              <Input
+                id="motivo"
+                value={motivoDisputa}
+                onChange={(e) => setMotivoDisputa(e.target.value)}
+                maxLength={200}
+                required
+                placeholder="Ej: Entrega incompleta"
+              />
+            </Campo>
+            <Campo etiqueta="Descripción" htmlFor="descripcion">
+              <Textarea
+                id="descripcion"
+                value={descripcionDisputa}
+                onChange={(e) => setDescripcionDisputa(e.target.value)}
+                rows={3}
+                maxLength={2000}
+                placeholder="Cuéntanos qué ocurrió con el servicio."
+              />
+            </Campo>
+            <Campo
+              etiqueta="Evidencia (opcional)"
+              htmlFor="evidencia"
+              ayuda="PDF, JPG o PNG de hasta 5 MB."
             >
-              {procesando ? 'Abriendo Webpay…' : 'Pagar ahora con Webpay'}
-            </button>
-          )}
-          {puedeConfirmar && (
-            <Link
-              to={`/reserva/${reserva.id}/confirmar`}
-              className="border border-black bg-black px-5 py-2.5 text-[13px] text-white no-underline"
-            >
-              Confirmar entrega
-            </Link>
-          )}
-          {puedeCancelar && (
-            <button
-              type="button"
-              disabled={procesando}
-              onClick={() =>
-                ejecutar(
-                  () => cancelarReserva(reserva.id, 'Cancelada por la organización'),
-                  'Reserva cancelada.',
-                )
-              }
-              className="border border-black px-5 py-2.5 text-[13px] disabled:opacity-50"
-            >
-              Cancelar reserva
-            </button>
-          )}
-          {puedeReportar && (
-            <button
-              type="button"
-              onClick={() => setFormDisputa(true)}
-              className="border border-red-300 px-5 py-2.5 text-[13px] text-red-600"
-            >
-              Reportar un problema
-            </button>
-          )}
-        </div>
+              <input
+                id="evidencia"
+                type="file"
+                accept="application/pdf,image/jpeg,image/png"
+                onChange={(e) => setEvidenciaDisputa(e.target.files?.[0] || null)}
+                className="block w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-[0.8125rem] text-ink-2 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-blue-soft file:px-3 file:py-1.5 file:text-[0.8125rem] file:font-bold file:text-brand-blue-deep"
+              />
+            </Campo>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Boton type="submit" variante="peligro" cargando={enviandoDisputa}>
+              {enviandoDisputa ? 'Enviando…' : 'Abrir disputa'}
+            </Boton>
+            <Boton variante="secundario" onClick={() => setFormDisputa(false)}>
+              Cancelar
+            </Boton>
+          </div>
+        </Card>
       )}
     </div>
   )

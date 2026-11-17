@@ -5,7 +5,14 @@ import { detalleOrganizacionAdmin } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
 import StatusBadge from '../../components/StatusBadge'
-import { Cargando, Estado, Kpi, Volver } from '../../components/admin/ui'
+import {
+  Cargando,
+  Encabezado,
+  Estado,
+  Kpi,
+  Volver,
+} from '../../components/admin/ui'
+import { Chip, Tabla, Td, Th, Tr } from '../../components/ui'
 import {
   ESTADOS_RESERVA,
   formatearCLP,
@@ -62,82 +69,93 @@ export default function HistorialOrganizacion() {
     <div>
       <Volver to="/admin/organizaciones">Volver a Organizaciones</Volver>
 
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[19px] font-bold">{organizacion.nombre}</h1>
-          <p className="text-[12px] text-gray-500">
-            RUT {organizacion.rut || '—'} · Contacto: {organizacion.nombre_contacto} · Cliente
-            desde {formatearFecha(organizacion.creada_en)}
-          </p>
-          <p className="text-[11.5px] text-gray-500">
-            {organizacion.email_contacto}
-            {organizacion.telefono && ` · ${organizacion.telefono}`}
-            {organizacion.giro && ` · ${organizacion.giro}`}
-          </p>
-        </div>
-        {organizacion.activa ? (
-          <Estado clase="bg-green-100 text-green-700">Activa</Estado>
-        ) : (
-          <Estado clase="bg-gray-200 text-gray-600">Inactiva</Estado>
-        )}
-      </div>
+      <Encabezado
+        titulo={organizacion.nombre}
+        descripcion={`RUT ${organizacion.rut || '—'} · Contacto: ${
+          organizacion.nombre_contacto
+        } · Cliente desde ${formatearFecha(
+          organizacion.creada_en,
+        )} · ${organizacion.email_contacto}${
+          organizacion.telefono ? ` · ${organizacion.telefono}` : ''
+        }${organizacion.giro ? ` · ${organizacion.giro}` : ''}`}
+        acciones={
+          <Estado tono={organizacion.activa ? 'ok' : 'neutro'}>
+            {organizacion.activa ? 'Activa' : 'Inactiva'}
+          </Estado>
+        }
+      />
 
-      <div className="mb-6 flex gap-3.5">
-        <Kpi etiqueta="Servicios contratados" valor={kpis.reservas} tono="ok" />
-        <Kpi etiqueta="Gasto total acumulado" valor={formatearCLP(kpis.gasto_total)} />
-        <Kpi etiqueta="Disputas históricas" valor={kpis.disputas} tono={kpis.disputas ? 'alert' : 'base'} />
+      <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi
+          etiqueta="Servicios contratados"
+          valor={kpis.reservas}
+          tono="ok"
+          icono="calendar"
+        />
+        <Kpi
+          etiqueta="Gasto total acumulado"
+          valor={formatearCLP(kpis.gasto_total)}
+          icono="wallet"
+        />
+        <Kpi
+          etiqueta="Disputas históricas"
+          valor={kpis.disputas}
+          tono={kpis.disputas ? 'alert' : 'base'}
+          icono="alert-triangle"
+        />
         <Kpi
           etiqueta="Última reserva"
           valor={kpis.ultima_reserva ? formatearFechaCorta(kpis.ultima_reserva) : '—'}
+          icono="clock"
         />
       </div>
 
-      <h2 className="mb-2 text-[14px] font-bold">Historial de reservas</h2>
-
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <h2 className="mr-2 text-[0.9375rem] font-bold text-ink">
+          Historial de reservas
+        </h2>
         {FILTROS.map(([clave, etiqueta]) => (
-          <button
+          <Chip
             key={clave}
-            type="button"
+            activo={filtro === clave}
             onClick={() => setFiltro(clave)}
-            className={`border px-3 py-1 text-[11.5px] ${
-              filtro === clave ? 'border-black bg-black text-white' : 'border-line'
-            }`}
           >
             {etiqueta}
-          </button>
+          </Chip>
         ))}
       </div>
 
       {reservas.length === 0 ? (
-        <p className="text-[13px] text-gray-500">No hay reservas en esta categoría.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[12px]">
-            <thead>
-              <tr className="border-b border-black text-left">
-                <th className="py-2 pr-3 font-bold">Servicio</th>
-                <th className="py-2 pr-3 font-bold">Profesional</th>
-                <th className="py-2 pr-3 font-bold">Fecha reserva</th>
-                <th className="py-2 pr-3 text-right font-bold">Monto</th>
-                <th className="py-2 pr-3 font-bold">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reservas.map((r) => (
-                <tr key={r.id} className="border-b border-line">
-                  <td className="py-2.5 pr-3 font-bold">{r.servicio}</td>
-                  <td className="py-2.5 pr-3">{r.profesional}</td>
-                  <td className="py-2.5 pr-3">{formatearFechaCorta(r.fecha)}</td>
-                  <td className="py-2.5 pr-3 text-right">{formatearCLP(r.monto)}</td>
-                  <td className="py-2.5 pr-3">
-                    <StatusBadge estado={r.estado} mapa={ESTADOS_RESERVA} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="rounded-xl border border-dashed border-line bg-canvas/50 px-4 py-8 text-center text-[0.8125rem] text-ink-3">
+          No hay reservas en esta categoría.
         </div>
+      ) : (
+        <Tabla>
+          <thead>
+            <tr>
+              <Th>Servicio</Th>
+              <Th>Profesional</Th>
+              <Th>Fecha reserva</Th>
+              <Th className="text-right">Monto</Th>
+              <Th>Estado</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {reservas.map((r) => (
+              <Tr key={r.id}>
+                <Td className="font-bold text-ink">{r.servicio}</Td>
+                <Td>{r.profesional}</Td>
+                <Td className="whitespace-nowrap">{formatearFechaCorta(r.fecha)}</Td>
+                <Td className="whitespace-nowrap text-right font-semibold text-ink">
+                  {formatearCLP(r.monto)}
+                </Td>
+                <Td>
+                  <StatusBadge estado={r.estado} mapa={ESTADOS_RESERVA} />
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Tabla>
       )}
     </div>
   )

@@ -3,8 +3,21 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { listarDisputasAdmin, resolverDisputaAdmin } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import StatusBadge from '../../components/StatusBadge'
 import { Cargando, Encabezado, Kpi, Vacio } from '../../components/admin/ui'
+import {
+  Boton,
+  Campo,
+  Chip,
+  Input,
+  Select,
+  Tabla,
+  Td,
+  Textarea,
+  Th,
+  Tr,
+} from '../../components/ui'
 import {
   ESTADOS_DISPUTA,
   ESTADOS_PAGO,
@@ -69,7 +82,9 @@ export default function Disputas() {
       setDisputas((actuales) =>
         actuales.map((item) => (item.id === data.id ? data : item)),
       )
-      setAviso(`Disputa #${data.id} resuelta: ${RESULTADOS_DISPUTA[data.resultado]?.etiqueta}.`)
+      setAviso(
+        `Disputa #${data.id} resuelta: ${RESULTADOS_DISPUTA[data.resultado]?.etiqueta}.`,
+      )
       setForm(null)
     } catch (err) {
       setError(mensajeDeError(err))
@@ -90,47 +105,51 @@ export default function Disputas() {
 
   return (
     <div>
-      <Encabezado titulo="Disputas" />
+      <Encabezado
+        titulo="Disputas"
+        descripcion="Revisa los casos reportados por organizaciones y profesionales, y resuélvelos con el pago en custodia."
+      />
 
-      <div className="mb-6 flex gap-3.5">
+      <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi etiqueta="Disputas abiertas" valor={kpis.abiertas} tono="alert" />
         <Kpi etiqueta="En revisión" valor={kpis.revision} tono="warn" />
         <Kpi etiqueta="Resueltas" valor={kpis.resueltas} tono="ok" />
-        <Kpi etiqueta="Monto retenido en disputa" valor={formatearCLP(kpis.retenido)} />
+        <Kpi
+          etiqueta="Monto retenido en disputa"
+          valor={formatearCLP(kpis.retenido)}
+          icono="wallet"
+        />
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {FILTROS.map(([clave, etiqueta]) => (
-          <button
-            key={clave}
-            type="button"
-            onClick={() => setEstado(clave)}
-            className={`border px-3 py-1.5 text-[12px] ${
-              estado === clave ? 'border-black bg-black text-white' : 'border-line'
-            }`}
-          >
-            {etiqueta}
-          </button>
-        ))}
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="flex flex-wrap gap-2">
+          {FILTROS.map(([clave, etiqueta]) => (
+            <Chip
+              key={clave}
+              activo={estado === clave}
+              onClick={() => setEstado(clave)}
+            >
+              {etiqueta}
+            </Chip>
+          ))}
+        </div>
         <form
-          className="ml-auto flex gap-2"
+          className="flex gap-2 lg:ml-auto"
           onSubmit={(e) => {
             e.preventDefault()
             setQ(busqueda.trim())
           }}
         >
-          <input
+          <Input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar servicio, organización o profesional…"
-            className="w-64 border border-gray-400 px-3 py-1.5 text-[12px] outline-none"
+            className="w-full text-[0.8125rem] lg:w-72"
           />
-          <button
-            type="submit"
-            className="border border-black px-3 py-1.5 text-[11.5px]"
-          >
+          <Boton type="submit" variante="secundario" tamano="sm">
+            <Icon nombre="search" className="h-4 w-4" />
             Buscar
-          </button>
+          </Boton>
         </form>
       </div>
 
@@ -150,48 +169,52 @@ export default function Disputas() {
       ) : disputas.length === 0 ? (
         <Vacio>No hay disputas para este filtro.</Vacio>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[12px]">
-            <thead>
-              <tr className="border-b border-black text-left">
-                <th className="py-2 pr-3 font-bold">Servicio</th>
-                <th className="py-2 pr-3 font-bold">Organización</th>
-                <th className="py-2 pr-3 font-bold">Profesional</th>
-                <th className="py-2 pr-3 font-bold">Motivo</th>
-                <th className="py-2 pr-3 text-right font-bold">Monto retenido</th>
-                <th className="py-2 pr-3 font-bold">Estado</th>
-                <th className="py-2 font-bold" />
-              </tr>
-            </thead>
-            <tbody>
-              {disputas.map((d) => (
-                <Fragment key={d.id}>
-                  <tr className="border-b border-line">
-                    <td className="py-2.5 pr-3 font-bold">{d.servicio}</td>
-                    <td className="py-2.5 pr-3">{d.organizacion}</td>
-                    <td className="py-2.5 pr-3">{d.profesional}</td>
-                    <td className="py-2.5 pr-3">{d.motivo}</td>
-                    <td className="py-2.5 pr-3 text-right">
-                      {formatearCLP(d.monto_retenido ?? d.monto)}
-                    </td>
-                    <td className="py-2.5 pr-3">
-                      <StatusBadge estado={d.estado} mapa={ESTADOS_DISPUTA} />
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => abrirCaso(d)}
-                        className="border border-black px-2.5 py-1 text-[11px] font-bold"
-                      >
-                        {expandido === d.id ? 'Cerrar' : d.estado === 'resuelta' ? 'Ver' : 'Revisar'}
-                      </button>
-                    </td>
-                  </tr>
-                  {expandido === d.id && (
-                    <tr className="border-b border-line bg-[#f7f7f7]">
-                      <td colSpan={7} className="px-3 py-3 text-[11.5px] text-gray-600">
-                        <p className="mb-1">
-                          <b className="text-black">Descripción:</b>{' '}
+        <Tabla>
+          <thead>
+            <tr>
+              <Th>Servicio</Th>
+              <Th>Organización</Th>
+              <Th>Profesional</Th>
+              <Th>Motivo</Th>
+              <Th className="text-right">Monto retenido</Th>
+              <Th>Estado</Th>
+              <Th className="text-right">Acción</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {disputas.map((d) => (
+              <Fragment key={d.id}>
+                <Tr>
+                  <Td className="font-bold text-ink">{d.servicio}</Td>
+                  <Td>{d.organizacion}</Td>
+                  <Td>{d.profesional}</Td>
+                  <Td>{d.motivo}</Td>
+                  <Td className="whitespace-nowrap text-right font-semibold text-ink">
+                    {formatearCLP(d.monto_retenido ?? d.monto)}
+                  </Td>
+                  <Td>
+                    <StatusBadge estado={d.estado} mapa={ESTADOS_DISPUTA} />
+                  </Td>
+                  <Td className="text-right">
+                    <Boton
+                      tamano="sm"
+                      variante={expandido === d.id ? 'fantasma' : 'secundario'}
+                      onClick={() => abrirCaso(d)}
+                    >
+                      {expandido === d.id
+                        ? 'Cerrar'
+                        : d.estado === 'resuelta'
+                          ? 'Ver'
+                          : 'Revisar'}
+                    </Boton>
+                  </Td>
+                </Tr>
+                {expandido === d.id && (
+                  <Tr className="bg-canvas/60 hover:bg-canvas/60">
+                    <Td colSpan={7} className="px-4 py-4">
+                      <div className="space-y-1.5 text-[0.8125rem] text-ink-2">
+                        <p>
+                          <b className="text-ink">Descripción:</b>{' '}
                           {d.descripcion || 'Sin descripción adicional.'}
                         </p>
                         <p>
@@ -199,32 +222,37 @@ export default function Disputas() {
                           {formatearFechaHora(d.creada_en)}
                           {` · Reserva #${d.reserva}`}
                         </p>
-                        <p className="mt-1">
-                          <b className="text-black">Pago:</b>{' '}
+                        <p>
+                          <b className="text-ink">Pago:</b>{' '}
                           {ESTADOS_PAGO[d.pago_estado] || d.pago_estado || 'Sin pago'}
                           {d.monto_retenido != null &&
                             ` · Retenido: ${formatearCLP(d.monto_retenido)}`}
                         </p>
 
                         {d.evidencias?.length > 0 && (
-                          <div className="mt-2">
-                            <b className="text-black">Evidencia:</b>
-                            <ul className="mt-1 space-y-0.5">
+                          <div className="pt-1.5">
+                            <b className="text-ink">Evidencia:</b>
+                            <ul className="mt-1 space-y-1">
                               {d.evidencias.map((archivo) => (
-                                <li key={archivo.id}>
+                                <li key={archivo.id} className="flex items-center gap-1.5">
+                                  <Icon nombre="file" className="h-3.5 w-3.5 text-ink-3" />
                                   {archivo.archivo ? (
                                     <a
                                       href={archivo.archivo}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="underline"
+                                      className="font-semibold text-brand-blue no-underline hover:underline"
                                     >
                                       {archivo.nombre || `Archivo ${archivo.id}`}
                                     </a>
                                   ) : (
                                     archivo.nombre || `Archivo ${archivo.id}`
                                   )}
-                                  {archivo.subida_por && ` — ${archivo.subida_por}`}
+                                  {archivo.subida_por && (
+                                    <span className="text-ink-3">
+                                      — {archivo.subida_por}
+                                    </span>
+                                  )}
                                 </li>
                               ))}
                             </ul>
@@ -232,19 +260,19 @@ export default function Disputas() {
                         )}
 
                         {d.estado === 'resuelta' ? (
-                          <div className="mt-3 border-t border-line pt-2">
+                          <div className="mt-3 space-y-1 rounded-xl border border-line bg-white px-4 py-3">
                             <p>
-                              <b className="text-black">Resultado:</b>{' '}
+                              <b className="text-ink">Resultado:</b>{' '}
                               {RESULTADOS_DISPUTA[d.resultado]?.etiqueta || d.resultado}
                             </p>
                             {d.monto_reembolso && (
                               <p>
-                                <b className="text-black">Reembolso:</b>{' '}
+                                <b className="text-ink">Reembolso:</b>{' '}
                                 {formatearCLP(d.monto_reembolso)}
                               </p>
                             )}
                             {d.resolucion && <p>{d.resolucion}</p>}
-                            <p>
+                            <p className="text-ink-3">
                               Resuelta el {formatearFechaHora(d.resuelta_en)}
                             </p>
                           </div>
@@ -252,21 +280,27 @@ export default function Disputas() {
                           form &&
                           form.resultado !== undefined && (
                             <form
-                              className="mt-3 border-t border-line pt-3"
+                              className="mt-3 rounded-xl border border-line bg-white p-4"
                               onSubmit={(e) => {
                                 e.preventDefault()
                                 resolver(d)
                               }}
                             >
-                              <div className="flex flex-wrap items-end gap-3">
-                                <label className="text-[11px] font-bold text-black">
-                                  Resultado
-                                  <select
+                              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                                <Campo
+                                  etiqueta="Resultado"
+                                  htmlFor={`resultado-${d.id}`}
+                                  className="sm:min-w-64"
+                                >
+                                  <Select
+                                    id={`resultado-${d.id}`}
                                     value={form.resultado}
                                     onChange={(e) =>
-                                      setForm({ ...form, resultado: e.target.value })
+                                      setForm({
+                                        ...form,
+                                        resultado: e.target.value,
+                                      })
                                     }
-                                    className="mt-1 block border border-gray-400 px-2 py-1.5 text-[12px]"
                                   >
                                     <option value="a_favor_organizacion">
                                       A favor de la organización (reembolso total)
@@ -275,12 +309,16 @@ export default function Disputas() {
                                       A favor del profesional (liberar pago)
                                     </option>
                                     <option value="division">División</option>
-                                  </select>
-                                </label>
+                                  </Select>
+                                </Campo>
                                 {form.resultado === 'division' && (
-                                  <label className="text-[11px] font-bold text-black">
-                                    % reembolso a la organización
-                                    <input
+                                  <Campo
+                                    etiqueta="% reembolso a la organización"
+                                    htmlFor={`porcentaje-${d.id}`}
+                                    className="sm:w-40"
+                                  >
+                                    <Input
+                                      id={`porcentaje-${d.id}`}
                                       type="number"
                                       min="1"
                                       max="99"
@@ -291,42 +329,46 @@ export default function Disputas() {
                                           porcentaje_reembolso: e.target.value,
                                         })
                                       }
-                                      className="mt-1 block w-28 border border-gray-400 px-2 py-1.5 text-[12px]"
                                     />
-                                  </label>
+                                  </Campo>
                                 )}
                               </div>
-                              <label className="mt-3 block text-[11px] font-bold text-black">
-                                Resolución
-                                <textarea
-                                  value={form.resolucion}
-                                  onChange={(e) =>
-                                    setForm({ ...form, resolucion: e.target.value })
-                                  }
-                                  rows={2}
-                                  required
-                                  placeholder="Explica la decisión; la ven ambas partes."
-                                  className="mt-1 block w-full border border-gray-400 px-2 py-1.5 text-[12px]"
-                                />
-                              </label>
-                              <button
+                              <div className="mt-3">
+                                <Campo
+                                  etiqueta="Resolución"
+                                  htmlFor={`resolucion-${d.id}`}
+                                  ayuda="La ven ambas partes."
+                                >
+                                  <Textarea
+                                    id={`resolucion-${d.id}`}
+                                    value={form.resolucion}
+                                    onChange={(e) =>
+                                      setForm({ ...form, resolucion: e.target.value })
+                                    }
+                                    rows={2}
+                                    required
+                                    placeholder="Explica la decisión…"
+                                  />
+                                </Campo>
+                              </div>
+                              <Boton
                                 type="submit"
-                                disabled={enviando}
-                                className="mt-3 border border-black bg-black px-4 py-1.5 text-[11.5px] font-bold text-white disabled:opacity-50"
+                                className="mt-3"
+                                cargando={enviando}
                               >
-                                {enviando ? 'Resolviendo…' : 'Resolver disputa'}
-                              </button>
+                                Resolver disputa
+                              </Boton>
                             </form>
                           )
                         )}
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      </div>
+                    </Td>
+                  </Tr>
+                )}
+              </Fragment>
+            ))}
+          </tbody>
+        </Tabla>
       )}
     </div>
   )

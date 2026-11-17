@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 
 import {
   actualizarTasaComisionAdmin,
@@ -9,14 +8,27 @@ import {
 } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import {
   Barras,
   Cargando,
   Encabezado,
+  Estado,
   Kpi,
   Panel,
   Vacio,
 } from '../../components/admin/ui'
+import {
+  Boton,
+  BotonEnlace,
+  Campo,
+  Input,
+  Select,
+  Tabla,
+  Td,
+  Th,
+  Tr,
+} from '../../components/ui'
 import { formatearCLP, formatearFechaCorta } from '../../lib/formato'
 
 export function formatearPorcentaje(tasa) {
@@ -102,30 +114,43 @@ export default function Comisiones() {
 
   return (
     <div>
-      <Encabezado titulo="Comisiones" />
+      <Encabezado
+        titulo="Comisiones"
+        descripcion="Configura la tasa que cobra Skilly y revisa la comisión recaudada por período."
+      />
 
-      <div className="mb-6 flex flex-wrap gap-3.5">
+      <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
           etiqueta={`Comisión recaudada (${datos.mes_etiqueta})`}
           valor={formatearCLP(datos.comision_mes)}
           tono="ok"
+          icono="wallet"
         />
         <Kpi
           etiqueta="Comisión acumulada (histórico)"
           valor={formatearCLP(datos.comision_historica)}
+          icono="chart"
         />
-        <Kpi etiqueta="Tasa global vigente" valor={formatearPorcentaje(datos.tasa_vigente)} />
-        <Kpi etiqueta="Servicios facturados este mes" valor={datos.servicios_facturados} />
+        <Kpi
+          etiqueta="Tasa global vigente"
+          valor={formatearPorcentaje(datos.tasa_vigente)}
+          icono="percent"
+        />
+        <Kpi
+          etiqueta="Servicios facturados este mes"
+          valor={datos.servicios_facturados}
+          icono="check-circle"
+        />
       </div>
 
-      <div className="mb-5 flex flex-wrap gap-5">
-        <Panel titulo="Configuración de tasa" className="min-w-[300px]">
-          <div className="mb-3 flex items-center justify-between gap-3 border border-line bg-sky px-3 py-3">
+      <div className="mb-5 grid gap-5 xl:grid-cols-2">
+        <Panel titulo="Configuración de tasa" icono="percent">
+          <div className="mb-4 flex items-center justify-between gap-3 rounded-xl bg-brand-blue-soft px-4 py-3.5">
             <div>
-              <p className="text-[20px] font-bold text-navy">
+              <p className="text-[1.6rem] font-extrabold leading-none tracking-[-0.03em] text-ink">
                 {formatearPorcentaje(datos.tasa_vigente)}
               </p>
-              <p className="text-[10.5px] text-gray-600">
+              <p className="mt-1 text-[0.75rem] text-ink-3">
                 {datos.tasa_vigente_origen === 'defecto'
                   ? 'Valor por defecto del sistema'
                   : `Tasa global vigente desde ${
@@ -135,33 +160,39 @@ export default function Comisiones() {
                     }`}
               </p>
             </div>
-            <button
-              type="button"
+            <Boton
+              variante="secundario"
+              tamano="sm"
               onClick={() => {
                 setMostrarForm((valor) => !valor)
                 setErrorForm('')
                 setExito('')
               }}
-              className="border border-black bg-white px-3 py-1.5 text-[11.5px]"
             >
               {mostrarForm ? 'Cancelar' : 'Nueva versión'}
-            </button>
+            </Boton>
           </div>
 
-          {exito && <p className="mb-2 text-[11.5px] text-brand-green">{exito}</p>}
+          {exito && (
+            <div className="mb-3">
+              <Alerta tipo="exito">{exito}</Alerta>
+            </div>
+          )}
           {errorForm && (
-            <p className="mb-2 text-[11.5px] text-brand-red">{errorForm}</p>
+            <div className="mb-3">
+              <Alerta>{errorForm}</Alerta>
+            </div>
           )}
 
           {mostrarForm && (
             <form
               onSubmit={guardarTasa}
-              className="mb-4 border border-line bg-[#fafafa] p-3"
+              className="mb-4 rounded-xl border border-line bg-canvas/60 p-3.5"
             >
-              <div className="mb-2 flex gap-2">
-                <label className="flex-1 text-[11px] text-gray-600">
-                  Nueva tasa (%)
-                  <input
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Campo etiqueta="Nueva tasa (%)" htmlFor="tasa" requerido>
+                  <Input
+                    id="tasa"
                     type="number"
                     min="0"
                     max="99.9"
@@ -171,68 +202,68 @@ export default function Comisiones() {
                     onChange={(e) =>
                       setForm({ ...form, porcentaje: e.target.value })
                     }
-                    className="mt-1 w-full border border-line bg-white px-2 py-1.5 text-[12.5px]"
                   />
-                </label>
-                <label className="flex-1 text-[11px] text-gray-600">
-                  Vigente desde
-                  <input
+                </Campo>
+                <Campo etiqueta="Vigente desde" htmlFor="vigente_desde" requerido>
+                  <Input
+                    id="vigente_desde"
                     type="date"
                     required
                     value={form.vigente_desde}
                     onChange={(e) =>
                       setForm({ ...form, vigente_desde: e.target.value })
                     }
-                    className="mt-1 w-full border border-line bg-white px-2 py-1.5 text-[12.5px]"
                   />
-                </label>
+                </Campo>
               </div>
-              <label className="mb-3 block text-[11px] text-gray-600">
-                Alcance
-                <select
-                  value={form.categoria}
-                  onChange={(e) => setForm({ ...form, categoria: e.target.value })}
-                  className="mt-1 w-full border border-line bg-white px-2 py-1.5 text-[12.5px]"
-                >
-                  <option value="">Global (todas las categorías)</option>
-                  {datos.tasas_por_categoria.map((fila) => (
-                    <option key={fila.categoria_id} value={fila.categoria_id}>
-                      {fila.categoria}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="submit"
-                disabled={guardando}
-                className="border border-black bg-black px-4 py-1.5 text-[11.5px] text-white disabled:opacity-50"
-              >
-                {guardando ? 'Guardando…' : 'Registrar versión'}
-              </button>
-              <p className="mt-2 text-[10.5px] leading-relaxed text-gray-500">
+              <div className="mt-3">
+                <Campo etiqueta="Alcance" htmlFor="alcance">
+                  <Select
+                    id="alcance"
+                    value={form.categoria}
+                    onChange={(e) => setForm({ ...form, categoria: e.target.value })}
+                  >
+                    <option value="">Global (todas las categorías)</option>
+                    {datos.tasas_por_categoria.map((fila) => (
+                      <option key={fila.categoria_id} value={fila.categoria_id}>
+                        {fila.categoria}
+                      </option>
+                    ))}
+                  </Select>
+                </Campo>
+              </div>
+              <Boton type="submit" tamano="sm" className="mt-3" cargando={guardando}>
+                Registrar versión
+              </Boton>
+              <p className="mt-2 text-[0.75rem] leading-relaxed text-ink-3">
                 Las tasas no se editan: cada cambio crea una versión. Los pagos ya
                 liberados conservan la tasa con la que se calcularon.
               </p>
             </form>
           )}
 
-          <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+          <h3 className="mb-2 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-ink-3">
             Tasa aplicable por categoría
           </h3>
-          <table className="w-full border-collapse text-[12px]">
+          <table className="w-full border-collapse text-[0.8125rem]">
             <thead>
               <tr className="border-b border-line text-left">
-                <th className="py-1.5 font-bold">Categoría</th>
-                <th className="py-1.5 text-right font-bold">Tasa</th>
-                <th className="py-1.5 text-right font-bold">Origen</th>
+                <th className="py-2 font-bold text-ink-3">Categoría</th>
+                <th className="py-2 text-right font-bold text-ink-3">Tasa</th>
+                <th className="py-2 text-right font-bold text-ink-3">Origen</th>
               </tr>
             </thead>
             <tbody>
               {datos.tasas_por_categoria.map((fila) => (
-                <tr key={fila.categoria_id} className="border-b border-[#f0f0f0]">
-                  <td className="py-1.5 pr-2">{fila.categoria}</td>
-                  <td className="py-1.5 pr-2 text-right">{formatearPorcentaje(fila.tasa)}</td>
-                  <td className="py-1.5 text-right text-gray-500">
+                <tr
+                  key={fila.categoria_id}
+                  className="border-b border-line/60 last:border-0"
+                >
+                  <td className="py-2 pr-2 text-ink-2">{fila.categoria}</td>
+                  <td className="py-2 pr-2 text-right font-semibold text-ink">
+                    {formatearPorcentaje(fila.tasa)}
+                  </td>
+                  <td className="py-2 text-right text-ink-3">
                     {fila.origen === 'categoria' ? 'Propia' : 'Global'}
                   </td>
                 </tr>
@@ -243,14 +274,18 @@ export default function Comisiones() {
 
         <Panel
           titulo="Comisión recaudada — últimos 6 meses"
-          className="min-w-[280px]"
+          icono="chart"
           accion={
-            <Link
-              to={`/admin/comisiones/ganancias${datos.mes ? `?mes=${datos.mes}` : ''}`}
-              className="text-[11px] font-normal text-navy no-underline hover:underline"
+            <BotonEnlace
+              to={`/admin/comisiones/ganancias${
+                datos.mes ? `?mes=${datos.mes}` : ''
+              }`}
+              variante="fantasma"
+              tamano="sm"
             >
-              Ver detalle mensual →
-            </Link>
+              Ver detalle mensual
+              <Icon nombre="arrow-right" className="h-3.5 w-3.5" />
+            </BotonEnlace>
           }
         >
           <Barras
@@ -263,92 +298,93 @@ export default function Comisiones() {
         </Panel>
       </div>
 
-      <Panel titulo="Historial de versiones de la tasa" className="mb-5">
+      <Panel
+        titulo="Historial de versiones de la tasa"
+        icono="clock"
+        className="mb-5"
+      >
         {versiones.length === 0 ? (
           <Vacio>Aún no hay versiones configuradas; se usa el 10 % por defecto.</Vacio>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-[12px]">
-              <thead>
-                <tr className="border-b border-line text-left">
-                  <th className="py-2 pr-3 font-bold">Vigente desde</th>
-                  <th className="py-2 pr-3 font-bold">Alcance</th>
-                  <th className="py-2 pr-3 text-right font-bold">Tasa</th>
-                  <th className="py-2 pr-3 font-bold">Estado</th>
-                  <th className="py-2 pr-3 font-bold">Creada por</th>
-                  <th className="py-2 font-bold">Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {versiones.map((version) => (
-                  <tr key={version.id} className="border-b border-line">
-                    <td className="py-2 pr-3">
-                      {formatearFechaCorta(version.vigente_desde)}
-                    </td>
-                    <td className="py-2 pr-3">
-                      {version.categoria_nombre || 'Global'}
-                    </td>
-                    <td className="py-2 pr-3 text-right">
-                      {formatearPorcentaje(version.tasa)}
-                    </td>
-                    <td className="py-2 pr-3">
+          <Tabla>
+            <thead>
+              <tr>
+                <Th>Vigente desde</Th>
+                <Th>Alcance</Th>
+                <Th className="text-right">Tasa</Th>
+                <Th>Estado</Th>
+                <Th>Creada por</Th>
+                <Th className="text-right">Acción</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {versiones.map((version) => (
+                <Tr key={version.id}>
+                  <Td className="whitespace-nowrap">
+                    {formatearFechaCorta(version.vigente_desde)}
+                  </Td>
+                  <Td>{version.categoria_nombre || 'Global'}</Td>
+                  <Td className="text-right font-semibold text-ink">
+                    {formatearPorcentaje(version.tasa)}
+                  </Td>
+                  <Td>
+                    <Estado tono={version.activa ? 'ok' : 'neutro'}>
                       {version.activa ? 'Activa' : 'Inactiva'}
-                    </td>
-                    <td className="py-2 pr-3 text-gray-500">
-                      {version.creada_por_email || '—'}
-                    </td>
-                    <td className="py-2">
-                      <button
-                        type="button"
-                        onClick={() => alternarActiva(version)}
-                        className="border border-line px-2 py-1 text-[10.5px] hover:bg-gray-50"
-                      >
-                        {version.activa ? 'Desactivar' : 'Reactivar'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </Estado>
+                  </Td>
+                  <Td className="text-ink-3">{version.creada_por_email || '—'}</Td>
+                  <Td className="text-right">
+                    <Boton
+                      tamano="sm"
+                      variante="secundario"
+                      onClick={() => alternarActiva(version)}
+                    >
+                      {version.activa ? 'Desactivar' : 'Reactivar'}
+                    </Boton>
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </Tabla>
         )}
       </Panel>
 
-      <h2 className="mb-2 text-[14px] font-bold">Detalle por servicio liberado</h2>
-      {datos.detalle.length === 0 ? (
-        <Vacio>No hay servicios liberados en {datos.mes_etiqueta}.</Vacio>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[12px]">
+      <Panel titulo="Detalle por servicio liberado" icono="wallet">
+        {datos.detalle.length === 0 ? (
+          <Vacio>No hay servicios liberados en {datos.mes_etiqueta}.</Vacio>
+        ) : (
+          <Tabla>
             <thead>
-              <tr className="border-b border-black text-left">
-                <th className="py-2 pr-3 font-bold">Servicio</th>
-                <th className="py-2 pr-3 font-bold">Organización</th>
-                <th className="py-2 pr-3 font-bold">Profesional</th>
-                <th className="py-2 pr-3 text-right font-bold">Monto servicio</th>
-                <th className="py-2 pr-3 text-right font-bold">Comisión</th>
-                <th className="py-2 font-bold">Fecha liberación</th>
+              <tr>
+                <Th>Servicio</Th>
+                <Th>Organización</Th>
+                <Th>Profesional</Th>
+                <Th className="text-right">Monto servicio</Th>
+                <Th className="text-right">Comisión</Th>
+                <Th>Fecha liberación</Th>
               </tr>
             </thead>
             <tbody>
               {datos.detalle.map((fila) => (
-                <tr key={fila.id} className="border-b border-line">
-                  <td className="py-2.5 pr-3 font-bold">{fila.servicio}</td>
-                  <td className="py-2.5 pr-3">{fila.organizacion}</td>
-                  <td className="py-2.5 pr-3">{fila.profesional}</td>
-                  <td className="py-2.5 pr-3 text-right">
+                <Tr key={fila.id}>
+                  <Td className="font-bold text-ink">{fila.servicio}</Td>
+                  <Td>{fila.organizacion}</Td>
+                  <Td>{fila.profesional}</Td>
+                  <Td className="whitespace-nowrap text-right">
                     {formatearCLP(fila.monto_servicio)}
-                  </td>
-                  <td className="py-2.5 pr-3 text-right">
+                  </Td>
+                  <Td className="whitespace-nowrap text-right font-semibold text-ink">
                     {formatearCLP(fila.comision)}
-                  </td>
-                  <td className="py-2.5">{formatearFechaCorta(fila.fecha_liberacion)}</td>
-                </tr>
+                  </Td>
+                  <Td className="whitespace-nowrap">
+                    {formatearFechaCorta(fila.fecha_liberacion)}
+                  </Td>
+                </Tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      )}
+          </Tabla>
+        )}
+      </Panel>
     </div>
   )
 }

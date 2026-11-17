@@ -8,6 +8,7 @@ import {
 } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import {
   Cargando,
   Encabezado,
@@ -15,6 +16,7 @@ import {
   Panel,
   Vacio,
 } from '../../components/admin/ui'
+import { Boton, Textarea } from '../../components/ui'
 import { formatearFechaHora } from '../../lib/formato'
 
 export default function Certificados() {
@@ -87,12 +89,28 @@ export default function Certificados() {
 
   return (
     <div>
-      <Encabezado titulo="Certificados" />
+      <Encabezado
+        titulo="Certificados"
+        descripcion="Valida los documentos cargados por los profesionales. LinkedIn se verifica automáticamente."
+      />
 
-      <div className="mb-6 flex flex-wrap gap-3.5">
-        <Kpi etiqueta="Documentos pendientes" valor={kpis.pendientes} tono="warn" />
-        <Kpi etiqueta="Profesionales involucrados" valor={kpis.profesionales} />
-        <Kpi etiqueta="Documentos privados" valor={kpis.documentos} />
+      <div className="mb-5 grid gap-3 sm:grid-cols-3">
+        <Kpi
+          etiqueta="Documentos pendientes"
+          valor={kpis.pendientes}
+          tono="warn"
+          icono="file"
+        />
+        <Kpi
+          etiqueta="Profesionales involucrados"
+          valor={kpis.profesionales}
+          icono="users"
+        />
+        <Kpi
+          etiqueta="Documentos privados"
+          valor={kpis.documentos}
+          icono="shield"
+        />
       </div>
 
       {error && (
@@ -106,49 +124,57 @@ export default function Certificados() {
         </div>
       )}
 
-      <Panel titulo="Cola de moderación de documentos">
-        <p className="mb-3 text-[11.5px] leading-relaxed text-gray-500">
-          El perfil de LinkedIn se valida automáticamente por formato de URL y no
-          aparece acá. Aprobar un certificado no aprueba la postulación: son
-          decisiones independientes.
+      <Panel titulo="Cola de moderación de documentos" icono="shield">
+        <p className="mb-4 rounded-xl bg-info-soft px-3.5 py-2.5 text-[0.8125rem] leading-relaxed text-info">
+          Aprobar un certificado no aprueba la postulación: son decisiones
+          independientes. El perfil de LinkedIn se valida automáticamente por formato de
+          URL y no aparece acá.
         </p>
 
         {certificados.length === 0 ? (
           <Vacio>No hay certificados pendientes de revisión.</Vacio>
         ) : (
-          <ul className="m-0 list-none space-y-2 p-0">
+          <ul className="space-y-2.5">
             {certificados.map((certificado) => (
               <li
                 key={certificado.id}
-                className="border border-line px-3 py-3 text-[12px]"
+                className="rounded-xl border border-line px-4 py-3"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-[220px] flex-1">
-                    <p className="font-bold">{certificado.nombre}</p>
-                    <p className="text-[11px] text-gray-600">
-                      {certificado.profesional_nombre} ·{' '}
-                      {certificado.especialidad || 'Sin especialidad'} ·{' '}
-                      {certificado.profesional_email}
-                    </p>
-                    <p className="mt-1 text-[10.5px] text-gray-500">
-                      Cargado el {formatearFechaHora(certificado.cargado_en)}
-                    </p>
-                    {certificado.comentario_revisor && (
-                      <p className="mt-1 text-[10.5px] text-brand-red">
-                        {certificado.comentario_revisor}
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-canvas text-ink-3">
+                      <Icon nombre="file" className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[0.875rem] font-bold text-ink">
+                        {certificado.nombre}
                       </p>
-                    )}
+                      <p className="mt-0.5 text-[0.75rem] text-ink-3">
+                        {certificado.profesional_nombre} ·{' '}
+                        {certificado.especialidad || 'Sin especialidad'} ·{' '}
+                        {certificado.profesional_email}
+                      </p>
+                      <p className="mt-1 text-[0.6875rem] text-ink-3">
+                        Cargado el {formatearFechaHora(certificado.cargado_en)}
+                      </p>
+                      {certificado.comentario_revisor && (
+                        <p className="mt-1 text-[0.75rem] font-semibold text-danger">
+                          {certificado.comentario_revisor}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:justify-end">
                     {certificado.archivo_url && (
                       <a
                         href={certificado.archivo_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="border border-line px-2 py-1 text-[10.5px] text-navy no-underline hover:underline"
+                        className="inline-flex items-center gap-1.5 rounded-[10px] border border-line px-2.5 py-1.5 text-[0.75rem] font-semibold text-ink-2 no-underline transition hover:border-ink-3"
                       >
-                        Ver archivo
+                        <Icon nombre="external" className="h-3.5 w-3.5" />
+                        Archivo
                       </a>
                     )}
                     {certificado.enlace && (
@@ -156,27 +182,28 @@ export default function Certificados() {
                         href={certificado.enlace}
                         target="_blank"
                         rel="noreferrer"
-                        className="border border-line px-2 py-1 text-[10.5px] text-navy no-underline hover:underline"
+                        className="inline-flex items-center gap-1.5 rounded-[10px] border border-line px-2.5 py-1.5 text-[0.75rem] font-semibold text-ink-2 no-underline transition hover:border-ink-3"
                       >
-                        Ver enlace
+                        <Icon nombre="external" className="h-3.5 w-3.5" />
+                        Enlace
                       </a>
                     )}
                     <Link
                       to={`/admin/postulaciones/${certificado.postulacion_id}`}
-                      className="border border-line px-2 py-1 text-[10.5px] text-navy no-underline hover:underline"
+                      className="inline-flex items-center gap-1.5 rounded-[10px] border border-line px-2.5 py-1.5 text-[0.75rem] font-semibold text-ink-2 no-underline transition hover:border-ink-3"
                     >
                       Ver postulación
                     </Link>
-                    <button
-                      type="button"
+                    <Boton
+                      tamano="sm"
                       disabled={enviando}
                       onClick={() => aprobar(certificado)}
-                      className="border border-brand-green px-2 py-1 text-[10.5px] font-bold text-brand-green disabled:opacity-50"
                     >
                       Aprobar
-                    </button>
-                    <button
-                      type="button"
+                    </Boton>
+                    <Boton
+                      tamano="sm"
+                      variante="peligro"
                       disabled={enviando}
                       onClick={() => {
                         setError('')
@@ -184,41 +211,40 @@ export default function Certificados() {
                         setRechazo(certificado)
                         setComentario('')
                       }}
-                      className="border border-brand-red px-2 py-1 text-[10.5px] font-bold text-brand-red disabled:opacity-50"
                     >
                       Rechazar
-                    </button>
+                    </Boton>
                   </div>
                 </div>
 
                 {rechazo?.id === certificado.id && (
-                  <div className="mt-3 border border-line bg-[#f7f7f7] p-3">
-                    <p className="mb-2 text-[12px] font-bold">
+                  <div className="mt-3 rounded-xl border border-line bg-canvas/60 p-3.5">
+                    <p className="mb-2 text-[0.8125rem] font-bold text-ink">
                       Motivo del rechazo para {certificado.nombre}
                     </p>
-                    <textarea
+                    <Textarea
                       value={comentario}
                       onChange={(e) => setComentario(e.target.value)}
                       rows={3}
-                      className="mb-2 w-full border border-line bg-white px-2 py-1.5 text-[12px]"
+                      className="bg-white"
                       placeholder="Explica qué debe corregir el profesional…"
                     />
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        disabled={enviando}
+                    <div className="mt-2.5 flex gap-2">
+                      <Boton
+                        tamano="sm"
+                        variante="peligro"
+                        cargando={enviando}
                         onClick={confirmarRechazo}
-                        className="border border-brand-red bg-brand-red px-3 py-1 text-[11px] font-bold text-white disabled:opacity-50"
                       >
-                        {enviando ? 'Enviando…' : 'Confirmar rechazo'}
-                      </button>
-                      <button
-                        type="button"
+                        Confirmar rechazo
+                      </Boton>
+                      <Boton
+                        tamano="sm"
+                        variante="fantasma"
                         onClick={() => setRechazo(null)}
-                        className="border border-line px-3 py-1 text-[11px]"
                       >
                         Cancelar
-                      </button>
+                      </Boton>
                     </div>
                   </div>
                 )}

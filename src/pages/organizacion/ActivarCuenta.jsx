@@ -4,9 +4,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { mensajeDeError } from '../../api/axios'
 import { confirmarReset } from '../../api/auth'
 import Alerta from '../../components/Alerta'
-
-const claseInput = 'w-full border border-gray-400 px-3 py-2 text-[13px] outline-none'
-const claseBoton = 'w-full bg-black py-2.5 text-[13px] text-white disabled:opacity-60'
+import Icon from '../../components/Icon'
+import { Boton, Campo, Card, Input } from '../../components/ui'
 
 export default function ActivarCuenta() {
   const { uid, token } = useParams()
@@ -39,50 +38,58 @@ export default function ActivarCuenta() {
   }
 
   return (
-    <div className="mx-auto max-w-md pt-8">
-      <h1 className="text-[20px] font-bold">Activa tu cuenta</h1>
-      <p className="mb-5 text-[12px] text-gray-500">
-        Crea tu contraseña para activar la cuenta con la que gestionarás tus
-        reservas.
-      </p>
+    <div className="mx-auto max-w-md">
+      <Card className="p-6 sm:p-8">
+        <span className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-brand-blue-soft text-brand-blue">
+          <Icon nombre="lock" className="h-6 w-6" />
+        </span>
+        <h1 className="text-[1.5rem] font-extrabold tracking-[-0.02em] text-ink">
+          Activa tu cuenta
+        </h1>
+        <p className="mt-2 mb-5 text-[0.875rem] leading-relaxed text-ink-3">
+          Crea tu contraseña para activar la cuenta con la que gestionarás tus
+          reservas.
+        </p>
 
-      {error && (
-        <div className="mb-4">
-          <Alerta>{error}</Alerta>
-        </div>
-      )}
+        {error && (
+          <div className="mb-4">
+            <Alerta>{error}</Alerta>
+          </div>
+        )}
 
-      <form onSubmit={enviar} className="space-y-4">
-        <div>
-          <label className="mb-1 block text-[12px] text-gray-600">Contraseña</label>
-          <input
-            type="password"
-            required
-            className={claseInput}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <div>
-          <label className="mb-1 block text-[12px] text-gray-600">Repetir contraseña</label>
-          <input
-            type="password"
-            required
-            className={claseInput}
-            value={password2}
-            onChange={(e) => setPassword2(e.target.value)}
-          />
-        </div>
-        <button type="submit" disabled={enviando} className={claseBoton}>
-          {enviando ? 'Activando…' : 'Crear contraseña y activar'}
-        </button>
-      </form>
+        <form onSubmit={enviar} className="space-y-4">
+          <Campo etiqueta="Contraseña" htmlFor="activar-password" requerido>
+            <Input
+              id="activar-password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </Campo>
+          <Campo etiqueta="Repetir contraseña" htmlFor="activar-password2" requerido>
+            <Input
+              id="activar-password2"
+              type="password"
+              required
+              value={password2}
+              onChange={(e) => setPassword2(e.target.value)}
+            />
+          </Campo>
+          <Boton type="submit" tamano="lg" className="w-full" cargando={enviando}>
+            {enviando ? 'Activando…' : 'Crear contraseña y activar'}
+          </Boton>
+        </form>
 
-      <p className="mt-4 text-center text-[11px] text-gray-500">
-        <Link to="/login" className="underline">
-          Volver a iniciar sesión
-        </Link>
-      </p>
+        <p className="mt-5 text-center text-[0.8125rem]">
+          <Link
+            to="/login"
+            className="font-semibold text-brand-blue-deep underline-offset-2 hover:underline"
+          >
+            Volver a iniciar sesión
+          </Link>
+        </p>
+      </Card>
     </div>
   )
 }

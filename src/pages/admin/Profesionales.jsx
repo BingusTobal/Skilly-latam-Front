@@ -3,12 +3,19 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { listarProfesionalesAdmin } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import StatusBadge from '../../components/StatusBadge'
-import { Cargando, Encabezado, Kpi, Vacio } from '../../components/admin/ui'
+import { Cargando, Encabezado, Estado, Kpi, Vacio } from '../../components/admin/ui'
 import {
-  ESTADOS_PROFESIONAL,
-  formatearFechaCorta,
-} from '../../lib/formato'
+  Avatar,
+  Boton,
+  Input,
+  Tabla,
+  Td,
+  Th,
+  Tr,
+} from '../../components/ui'
+import { ESTADOS_PROFESIONAL, formatearFechaCorta } from '../../lib/formato'
 
 export default function Profesionales() {
   const [profesionales, setProfesionales] = useState([])
@@ -47,12 +54,29 @@ export default function Profesionales() {
 
   return (
     <div>
-      <Encabezado titulo="Profesionales" />
+      <Encabezado
+        titulo="Profesionales"
+        descripcion="Consulta el estado, la especialidad y el historial de los profesionales de la plataforma."
+      />
 
-      <div className="mb-6 flex gap-3.5">
-        <Kpi etiqueta="Profesionales activos" valor={kpis.activos} tono="ok" />
-        <Kpi etiqueta="Categoría con más profesionales" valor={kpis.topCategoria} />
-        <Kpi etiqueta="Con disputa abierta" valor={kpis.conDisputa} tono="alert" />
+      <div className="mb-5 grid gap-3 sm:grid-cols-3">
+        <Kpi
+          etiqueta="Profesionales activos"
+          valor={kpis.activos}
+          tono="ok"
+          icono="users"
+        />
+        <Kpi
+          etiqueta="Categoría con más profesionales"
+          valor={kpis.topCategoria}
+          icono="chart"
+        />
+        <Kpi
+          etiqueta="Con disputa abierta"
+          valor={kpis.conDisputa}
+          tono="alert"
+          icono="alert-triangle"
+        />
       </div>
 
       <form
@@ -62,18 +86,16 @@ export default function Profesionales() {
           setQ(busqueda.trim())
         }}
       >
-        <input
+        <Input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre, RUT o correo…"
-          className="flex-1 border border-gray-400 px-3 py-2 text-[12.5px] outline-none"
+          className="flex-1 text-[0.8125rem]"
         />
-        <button
-          type="submit"
-          className="border border-black bg-black px-4 py-2 text-[12px] text-white"
-        >
+        <Boton type="submit" variante="secundario" tamano="sm">
+          <Icon nombre="search" className="h-4 w-4" />
           Buscar
-        </button>
+        </Boton>
       </form>
 
       {error && (
@@ -87,79 +109,86 @@ export default function Profesionales() {
       ) : profesionales.length === 0 ? (
         <Vacio>No se encontraron profesionales.</Vacio>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[12px]">
-            <thead>
-              <tr className="border-b border-black text-left">
-                <th className="py-2 pr-3 font-bold">Nombre</th>
-                <th className="py-2 pr-3 font-bold">Especialidad</th>
-                <th className="py-2 pr-3 font-bold">Aprobado</th>
-                <th className="py-2 pr-3 text-right font-bold">Completados</th>
-                <th className="py-2 pr-3 font-bold">Estado</th>
-                <th className="py-2 font-bold" />
-              </tr>
-            </thead>
-            <tbody>
-              {profesionales.map((p) => (
-                <Fragment key={p.id}>
-                  <tr className="border-b border-line">
-                    <td className="py-2.5 pr-3">
-                      <span className="font-bold">{p.nombre_completo}</span>
-                      <span className="block text-[10.5px] text-gray-500">
-                        {p.usuario_email}
-                      </span>
-                    </td>
-                    <td className="py-2.5 pr-3">{p.especialidad || '—'}</td>
-                    <td className="py-2.5 pr-3">
-                      {p.estado === 'aprobado'
-                        ? formatearFechaCorta(p.fecha_aprobacion || p.fecha_estado)
-                        : '—'}
-                    </td>
-                    <td className="py-2.5 pr-3 text-right">
-                      {p.servicios_completados}
-                    </td>
-                    <td className="py-2.5 pr-3">
-                      {p.disputas_abiertas > 0 ? (
-                        <StatusBadge
-                          estado="con_disputa"
-                          mapa={{
-                            con_disputa: {
-                              etiqueta: `${p.disputas_abiertas} disputa abierta`,
-                              clase: 'bg-red-100 text-red-700',
-                            },
-                          }}
-                        />
-                      ) : (
-                        <StatusBadge estado={p.estado} mapa={ESTADOS_PROFESIONAL} />
-                      )}
-                    </td>
-                    <td className="py-2.5 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setExpandido(expandido === p.id ? null : p.id)}
-                        className="border border-black px-2.5 py-1 text-[11px] font-bold"
-                      >
-                        {expandido === p.id ? 'Ocultar' : 'Ver perfil'}
-                      </button>
-                    </td>
-                  </tr>
-                  {expandido === p.id && (
-                    <tr className="border-b border-line bg-[#f7f7f7]">
-                      <td colSpan={6} className="px-3 py-3 text-[11.5px] text-gray-600">
-                        <p className="mb-1">
-                          <b className="text-black">Correo:</b> {p.usuario_email || '—'} ·{' '}
-                          <b className="text-black">Ciudad:</b> {p.ciudad || '—'} ·{' '}
-                          <b className="text-black">Disponibilidad:</b> {p.disponibilidad}
+        <Tabla>
+          <thead>
+            <tr>
+              <Th>Nombre</Th>
+              <Th>Especialidad</Th>
+              <Th>Aprobado</Th>
+              <Th className="text-right">Completados</Th>
+              <Th>Estado</Th>
+              <Th className="text-right">Perfil</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {profesionales.map((p) => (
+              <Fragment key={p.id}>
+                <Tr>
+                  <Td>
+                    <div className="flex items-center gap-3">
+                      <Avatar nombre={p.nombre_completo} tamano="sm" />
+                      <div className="min-w-0">
+                        <p className="font-bold text-ink">{p.nombre_completo}</p>
+                        <p className="text-[0.75rem] text-ink-3">{p.usuario_email}</p>
+                      </div>
+                    </div>
+                  </Td>
+                  <Td>{p.especialidad || '—'}</Td>
+                  <Td className="whitespace-nowrap">
+                    {p.estado === 'aprobado'
+                      ? formatearFechaCorta(p.fecha_aprobacion || p.fecha_estado)
+                      : '—'}
+                  </Td>
+                  <Td className="text-right font-semibold text-ink">
+                    {p.servicios_completados}
+                  </Td>
+                  <Td>
+                    {p.disputas_abiertas > 0 ? (
+                      <Estado tono="alert">
+                        {p.disputas_abiertas} disputa abierta
+                      </Estado>
+                    ) : (
+                      <StatusBadge estado={p.estado} mapa={ESTADOS_PROFESIONAL} />
+                    )}
+                  </Td>
+                  <Td className="text-right">
+                    <Boton
+                      tamano="sm"
+                      variante={expandido === p.id ? 'fantasma' : 'secundario'}
+                      onClick={() => setExpandido(expandido === p.id ? null : p.id)}
+                    >
+                      {expandido === p.id ? 'Ocultar' : 'Ver perfil'}
+                    </Boton>
+                  </Td>
+                </Tr>
+                {expandido === p.id && (
+                  <Tr className="bg-canvas/60 hover:bg-canvas/60">
+                    <Td colSpan={6} className="px-4 py-4">
+                      <div className="space-y-1.5 text-[0.8125rem] text-ink-2">
+                        <p className="flex flex-wrap gap-x-4 gap-y-1">
+                          <span>
+                            <b className="text-ink">Correo:</b>{' '}
+                            {p.usuario_email || '—'}
+                          </span>
+                          <span>
+                            <b className="text-ink">Ciudad:</b> {p.ciudad || '—'}
+                          </span>
+                          <span>
+                            <b className="text-ink">Disponibilidad:</b>{' '}
+                            {p.disponibilidad}
+                          </span>
                         </p>
-                        <p>{p.bio || 'Sin presentación registrada.'}</p>
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        <p className="leading-relaxed">
+                          {p.bio || 'Sin presentación registrada.'}
+                        </p>
+                      </div>
+                    </Td>
+                  </Tr>
+                )}
+              </Fragment>
+            ))}
+          </tbody>
+        </Tabla>
       )}
     </div>
   )

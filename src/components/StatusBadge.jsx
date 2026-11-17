@@ -1,15 +1,14 @@
 import { ESTADOS_SERVICIO } from '../lib/formato'
+import Estado from './ui/Estado'
 
 export default function StatusBadge({ estado, mapa = ESTADOS_SERVICIO, className = '' }) {
   const config = mapa[estado] || {
     etiqueta: estado,
-    clase: 'bg-gray-100 text-gray-600',
+    clase: 'bg-canvas text-ink-3',
   }
   return (
-    <span
-      className={`inline-block rounded-sm px-2.5 py-1 text-[11px] font-bold ${config.clase} ${className}`}
-    >
+    <Estado clase={config.clase} className={className}>
       {config.etiqueta}
-    </span>
+    </Estado>
   )
 }

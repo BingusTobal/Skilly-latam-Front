@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
 import { mensajeDeError } from '../../api/axios'
 import {
@@ -9,7 +9,19 @@ import {
   rechazarReserva,
 } from '../../api/reservas'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import StatusBadge from '../../components/StatusBadge'
+import {
+  Boton,
+  BotonEnlace,
+  Campo,
+  Card,
+  CardBody,
+  CardHeader,
+  PageHeader,
+  Skeleton,
+  Textarea,
+} from '../../components/ui'
 import {
   ESTADOS_RESERVA,
   FORMATOS,
@@ -33,7 +45,6 @@ function useCuentaRegresiva(expiraEn) {
   }, [expiraEn])
 
   if (restante === null) return null
-  const totalMin = Math.floor(restante / 60000)
   const horas = Math.floor(restante / 3600000)
   const minutos = Math.floor((restante % 3600000) / 60000)
   const segundos = Math.floor((restante % 60000) / 1000)
@@ -43,9 +54,9 @@ function useCuentaRegresiva(expiraEn) {
       restante === 0
         ? '0:00'
         : restante >= 3600000
-          ? `${horas}h ${String(Math.floor((restante % 3600000) / 60000)).padStart(2, '0')}m`
+          ? `${horas}h ${String(minutos).padStart(2, '0')}m`
           : `${String(Math.floor(restante / 60000)).padStart(2, '0')}:${String(
-              Math.floor((restante % 60000) / 1000),
+              segundos,
             ).padStart(2, '0')}`,
     restante,
   }
@@ -53,9 +64,11 @@ function useCuentaRegresiva(expiraEn) {
 
 function Fila({ etiqueta, children }) {
   return (
-    <div className="flex justify-between gap-4 py-2.5">
-      <span className="text-gray-500">{etiqueta}</span>
-      <span className="text-right">{children}</span>
+    <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line py-2.5 last:border-0">
+      <dt className="text-[0.8125rem] text-ink-3">{etiqueta}</dt>
+      <dd className="text-right text-[0.875rem] font-semibold text-ink">
+        {children}
+      </dd>
     </div>
   )
 }
@@ -99,18 +112,30 @@ export default function Solicitud() {
   }
 
   if (cargando) {
-    return <p className="p-8 text-center text-sm text-gray-500">Cargando…</p>
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-4 w-80" />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <Skeleton className="h-72 rounded-[20px] lg:col-span-2" />
+          <Skeleton className="h-72 rounded-[20px]" />
+        </div>
+      </div>
+    )
   }
+
   if (!solicitud) {
     return (
-      <div className="py-10 text-center">
+      <div className="py-10">
         <Alerta>{error || 'No encontramos esta solicitud.'}</Alerta>
-        <Link
+        <BotonEnlace
           to="/profesional/solicitudes"
-          className="mt-4 inline-block text-[13px] underline"
+          variante="secundario"
+          className="mt-4"
         >
+          <Icon nombre="arrow-left" className="h-4 w-4" />
           Volver a solicitudes
-        </Link>
+        </BotonEnlace>
       </div>
     )
   }
@@ -119,18 +144,17 @@ export default function Solicitud() {
   const esPendiente = estado === 'pendiente_aceptacion'
 
   return (
-    <div className="mx-auto max-w-3xl pt-5">
-      <Link
-        to="/profesional/solicitudes"
-        className="text-[13px] text-gray-600 no-underline"
-      >
-        &larr; Solicitudes
-      </Link>
-
-      <div className="mb-4 mt-3 flex items-center justify-between">
-        <h1 className="text-[20px] font-bold">Solicitud #{solicitud.id}</h1>
-        <StatusBadge estado={estado} mapa={ESTADOS_RESERVA} />
-      </div>
+    <div>
+      <PageHeader
+        etiqueta="Panel profesional"
+        titulo={`Solicitud #${solicitud.id}`}
+        descripcion={solicitud.servicio.titulo}
+        migas={[
+          { texto: 'Solicitudes', to: '/profesional/solicitudes' },
+          { texto: `Solicitud #${solicitud.id}` },
+        ]}
+        acciones={<StatusBadge estado={estado} mapa={ESTADOS_RESERVA} />}
+      />
 
       {aviso && (
         <div className="mb-4">
@@ -145,138 +169,188 @@ export default function Solicitud() {
 
       {esPendiente && cuenta && (
         <div
-          className={`mb-4 border px-4 py-3 text-[13px] ${
+          className={`mb-4 flex items-center gap-3 rounded-xl border px-4 py-3 text-[0.8125rem] leading-relaxed ${
             cuenta.restante > 0
-              ? 'border-amber-300 bg-amber-50 text-amber-800'
-              : 'border-red-300 bg-red-50 text-red-700'
+              ? 'border-warn/25 bg-warn-soft text-warn'
+              : 'border-danger/20 bg-danger-soft text-danger'
           }`}
+          role="status"
         >
-          {cuenta.restante > 0
-            ? `Responde dentro de ${Math.floor(cuenta.restante / 60000)} min o la solicitud se liberará.`
-            : 'El plazo de respuesta venció.'}
-        </div>
-      )}
-
-      <div className="border border-line">
-        <div className="border-b border-line px-4 py-3">
-          <p className="text-[14px] font-bold">{solicitud.servicio.titulo}</p>
-          <p className="text-[12px] text-gray-500">
-            {formatearFecha(solicitud.fecha)} · {formatearHora(solicitud.hora_inicio)}–
-            {formatearHora(solicitud.hora_fin)}
-          </p>
-        </div>
-
-        <dl className="divide-y divide-gray-100 px-4 text-[13px]">
-          <Fila etiqueta="Organización">
-            {solicitud.organizacion_nombre || solicitud.contacto_nombre}
-          </Fila>
-          <Fila etiqueta="Contacto">{solicitud.contacto_nombre}</Fila>
-          <Fila etiqueta="Email">{solicitud.contacto_email}</Fila>
-          {solicitud.contacto_telefono && (
-            <Fila etiqueta="Teléfono">{solicitud.contacto_telefono}</Fila>
-          )}
-          <Fila etiqueta="Modalidad">{FORMATOS[solicitud.formato]}</Fila>
-          {solicitud.ubicacion && <Fila etiqueta="Ubicación">{solicitud.ubicacion}</Fila>}
-          <Fila etiqueta="Recibirás">
-            <span className="font-bold text-navy">
-              {formatearCLP(solicitud.monto_neto)}
-            </span>
-          </Fila>
-        </dl>
-      </div>
-
-      {solicitud.mensaje && (
-        <div className="mt-4 border border-line px-4 py-3 text-[13px]">
-          <p className="mb-1 text-[12px] font-bold text-gray-500">
-            Mensaje de la organización
-          </p>
-          <p>{solicitud.mensaje}</p>
-        </div>
-      )}
-
-      {rechazando && (
-        <div className="mt-5 border border-line px-4 py-3">
-          <label className="mb-1 block text-[12px] font-bold">
-            Motivo del rechazo
-          </label>
-          <textarea
-            className="w-full border border-gray-300 px-3 py-2 text-[13px] focus:border-black focus:outline-none"
-            rows={3}
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
+          <Icon
+            nombre={cuenta.restante > 0 ? 'clock' : 'alert-circle'}
+            className="h-4 w-4 shrink-0"
+            strokeWidth={2}
           />
-          <div className="mt-2 flex gap-3">
-            <button
-              type="button"
-              disabled={procesando}
-              onClick={() =>
-                ejecutar(
-                  () => rechazarReserva(solicitud.id, motivo),
-                  'Solicitud rechazada.',
-                )
-              }
-              className="border border-red-600 bg-red-600 px-4 py-2 text-[13px] text-white disabled:opacity-50"
-            >
-              Confirmar rechazo
-            </button>
-            <button
-              type="button"
-              onClick={() => setRechazando(false)}
-              className="text-[13px] underline"
-            >
-              Cancelar
-            </button>
-          </div>
+          <span className="flex-1">
+            {cuenta.restante > 0
+              ? `Responde dentro de ${Math.max(
+                  1,
+                  Math.floor(cuenta.restante / 60000),
+                )} min o la solicitud se liberará.`
+              : 'El plazo de respuesta venció.'}
+          </span>
+          <span className="rounded-full bg-white/70 px-2.5 py-1 text-[0.75rem] font-extrabold tabular-nums">
+            {cuenta.texto}
+          </span>
         </div>
       )}
 
-      {(esPendiente || estado === 'en_curso') && !rechazando && (
-        <div className="mt-6 flex flex-wrap gap-3">
-          {esPendiente && (
-            <>
-              <button
-                type="button"
-                disabled={procesando}
-                onClick={() =>
-                  ejecutar(() => aceptarReserva(solicitud.id), 'Solicitud aceptada.')
-                }
-                className="border border-black bg-black px-5 py-2.5 text-[13px] text-white disabled:opacity-50"
-              >
-                Aceptar solicitud
-              </button>
-              <button
-                type="button"
-                disabled={procesando}
-                onClick={() => setRechazando(true)}
-                className="border border-gray-400 px-5 py-2.5 text-[13px] disabled:opacity-50"
-              >
-                Rechazar
-              </button>
-            </>
-          )}
-          {estado === 'en_curso' && (
-            <button
-              type="button"
-              disabled={procesando}
-              onClick={() =>
-                ejecutar(
-                  () => marcarEntregado(solicitud.id),
-                  'Marcaste el servicio como entregado. La organización debe confirmar.',
-                )
-              }
-              className="border border-black bg-black px-5 py-2.5 text-[13px] text-white disabled:opacity-50"
-            >
-              Marcar como entregado
-            </button>
-          )}
-        </div>
-      )}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div>
+                <h2 className="text-[0.9375rem] font-bold text-ink">
+                  Detalle de la reserva
+                </h2>
+                <p className="mt-0.5 text-[0.8125rem] text-ink-3">
+                  {formatearFecha(solicitud.fecha)} ·{' '}
+                  {formatearHora(solicitud.hora_inicio)}–
+                  {formatearHora(solicitud.hora_fin)}
+                </p>
+              </div>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-mint-soft text-brand-mint-deep">
+                <Icon nombre="calendar" className="h-5 w-5" />
+              </span>
+            </CardHeader>
+            <CardBody>
+              <dl>
+                <Fila etiqueta="Organización">
+                  {solicitud.organizacion_nombre || solicitud.contacto_nombre}
+                </Fila>
+                <Fila etiqueta="Contacto">{solicitud.contacto_nombre}</Fila>
+                <Fila etiqueta="Email">{solicitud.contacto_email}</Fila>
+                {solicitud.contacto_telefono && (
+                  <Fila etiqueta="Teléfono">{solicitud.contacto_telefono}</Fila>
+                )}
+                <Fila etiqueta="Modalidad">{FORMATOS[solicitud.formato]}</Fila>
+                {solicitud.ubicacion && (
+                  <Fila etiqueta="Ubicación">{solicitud.ubicacion}</Fila>
+                )}
+              </dl>
+            </CardBody>
+          </Card>
 
-      {estado === 'finalizada' && (
-        <div className="mt-6 border border-green-300 bg-green-50 px-4 py-3 text-[13px] text-green-800">
-          Servicio entregado y confirmado por la organización.
+          {solicitud.mensaje && (
+            <Card>
+              <CardBody>
+                <p className="mb-1 flex items-center gap-2 text-[0.75rem] font-bold uppercase tracking-[0.1em] text-ink-3">
+                  <Icon nombre="message" className="h-4 w-4" />
+                  Mensaje de la organización
+                </p>
+                <p className="mt-2 text-[0.875rem] leading-relaxed text-ink-2">
+                  {solicitud.mensaje}
+                </p>
+              </CardBody>
+            </Card>
+          )}
+
+          {rechazando && (
+            <Card>
+              <CardHeader>
+                <h2 className="text-[0.9375rem] font-bold text-ink">
+                  Motivo del rechazo
+                </h2>
+              </CardHeader>
+              <CardBody className="space-y-3">
+                <Campo
+                  etiqueta="Cuéntale a la organización por qué no puedes tomar el servicio"
+                  htmlFor="motivo"
+                >
+                  <Textarea
+                    id="motivo"
+                    rows={3}
+                    value={motivo}
+                    onChange={(e) => setMotivo(e.target.value)}
+                    placeholder="Ej: No tengo disponibilidad para esa fecha."
+                  />
+                </Campo>
+                <div className="flex flex-wrap gap-3">
+                  <Boton
+                    variante="peligro"
+                    cargando={procesando}
+                    onClick={() =>
+                      ejecutar(
+                        () => rechazarReserva(solicitud.id, motivo),
+                        'Solicitud rechazada.',
+                      )
+                    }
+                  >
+                    Confirmar rechazo
+                  </Boton>
+                  <Boton variante="fantasma" onClick={() => setRechazando(false)}>
+                    Cancelar
+                  </Boton>
+                </div>
+              </CardBody>
+            </Card>
+          )}
         </div>
-      )}
+
+        <aside className="space-y-4 lg:sticky lg:top-24">
+          <Card className="bg-brand-mint-soft">
+            <CardBody>
+              <p className="text-[0.75rem] font-semibold text-brand-mint-deep">
+                Recibirás
+              </p>
+              <p className="mt-1 text-[1.75rem] font-extrabold leading-none tracking-[-0.03em] text-ink">
+                {formatearCLP(solicitud.monto_neto)}
+              </p>
+              <p className="mt-1.5 text-[0.6875rem] text-ink-3">
+                Monto neto tras la comisión de Skilly.
+              </p>
+            </CardBody>
+          </Card>
+
+          {(esPendiente || estado === 'en_curso') && !rechazando && (
+            <div className="flex flex-col gap-2.5">
+              {esPendiente && (
+                <>
+                  <Boton
+                    className="w-full"
+                    cargando={procesando}
+                    onClick={() =>
+                      ejecutar(
+                        () => aceptarReserva(solicitud.id),
+                        'Solicitud aceptada.',
+                      )
+                    }
+                  >
+                    Aceptar solicitud
+                  </Boton>
+                  <Boton
+                    variante="secundario"
+                    className="w-full"
+                    disabled={procesando}
+                    onClick={() => setRechazando(true)}
+                  >
+                    Rechazar
+                  </Boton>
+                </>
+              )}
+              {estado === 'en_curso' && (
+                <Boton
+                  className="w-full"
+                  cargando={procesando}
+                  onClick={() =>
+                    ejecutar(
+                      () => marcarEntregado(solicitud.id),
+                      'Marcaste el servicio como entregado. La organización debe confirmar.',
+                    )
+                  }
+                >
+                  <Icon nombre="check" className="h-4 w-4" />
+                  Marcar como entregado
+                </Boton>
+              )}
+            </div>
+          )}
+
+          {estado === 'finalizada' && (
+            <Alerta tipo="exito">Servicio entregado y confirmado por la organización.</Alerta>
+          )}
+        </aside>
+      </div>
     </div>
   )
 }

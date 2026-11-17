@@ -10,11 +10,20 @@ import {
 } from '../../api/catalogo'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import { cotizarNeto } from '../../api/comisiones'
+import {
+  Boton,
+  Campo,
+  Card,
+  CardBody,
+  CardHeader,
+  Input,
+  PageHeader,
+  Select,
+  Textarea,
+} from '../../components/ui'
 import { FORMATOS, formatearCLP, montoNeto } from '../../lib/formato'
-
-const CLASE_INPUT = 'w-full border border-gray-400 px-3 py-2 text-[13px] outline-none'
-const CLASE_LABEL = 'mb-1 block text-[12px] text-gray-600'
 
 const VACIO = {
   titulo: '',
@@ -61,7 +70,8 @@ export default function PublicarServicio() {
       .catch((err) => setError(mensajeDeError(err)))
   }, [editando, id])
 
-  const requiereUbicacion = form.formato === 'presencial' || form.formato === 'semipresencial'
+  const requiereUbicacion =
+    form.formato === 'presencial' || form.formato === 'semipresencial'
   const [neto, setNeto] = useState(0)
 
   useEffect(() => {
@@ -160,16 +170,16 @@ export default function PublicarServicio() {
   }
 
   return (
-    <div className="pt-6">
-      <Link to="/profesional/servicios" className="text-[13px] text-gray-600 no-underline">
-        ← Volver a mis servicios
-      </Link>
-      <h1 className="mt-2 text-[21px] font-bold">
-        {editando ? 'Editar servicio' : 'Publicar un nuevo servicio'}
-      </h1>
-      <p className="mb-6 text-[12.5px] text-gray-500">
-        Al enviarlo, Skilly lo revisa antes de publicarlo en el catálogo.
-      </p>
+    <div>
+      <PageHeader
+        etiqueta="Panel profesional"
+        titulo={editando ? 'Editar servicio' : 'Publicar un nuevo servicio'}
+        descripcion="Completa la información del servicio. Al enviarlo, Skilly lo revisa antes de publicarlo en el catálogo."
+        migas={[
+          { texto: 'Mis servicios', to: '/profesional/servicios' },
+          { texto: editando ? 'Editar servicio' : 'Nuevo servicio' },
+        ]}
+      />
 
       {error && (
         <div className="mb-4">
@@ -177,170 +187,269 @@ export default function PublicarServicio() {
         </div>
       )}
 
-      <div className="flex flex-col gap-8 md:flex-row">
-        <div className="flex-1 space-y-6">
-          <section>
-            <h2 className="mb-3 border-b border-line pb-1.5 text-[14px] font-bold">
-              Información general
-            </h2>
-            <div className="mb-4">
-              <label className={CLASE_LABEL}>Nombre del servicio *</label>
-              <input
-                className={CLASE_INPUT}
-                value={form.titulo}
-                onChange={(e) => actualizar('titulo', e.target.value)}
-                placeholder="Ej: Sitio web corporativo en 15 días"
-              />
-            </div>
-            <div className="mb-4">
-              <label className={CLASE_LABEL}>Categoría *</label>
-              <select
-                className={CLASE_INPUT}
-                value={form.categoria}
-                onChange={(e) => actualizar('categoria', e.target.value)}
-              >
-                <option value="">Selecciona una categoría</option>
-                {categorias.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className={CLASE_LABEL}>Descripción breve *</label>
-              <input
-                className={CLASE_INPUT}
-                value={form.descripcion_corta}
-                onChange={(e) => actualizar('descripcion_corta', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className={CLASE_LABEL}>Descripción larga *</label>
-              <textarea
-                className={`${CLASE_INPUT} min-h-24`}
-                value={form.descripcion_larga}
-                onChange={(e) => actualizar('descripcion_larga', e.target.value)}
-              />
-            </div>
-          </section>
-
-          <section>
-            <h2 className="mb-3 border-b border-line pb-1.5 text-[14px] font-bold">
-              ¿Qué incluye el servicio?
-            </h2>
-            {form.entregables.map((entregable, indice) => (
-              <div key={indice} className="mb-2 flex items-center gap-2">
-                <span className="text-brand-green">✓</span>
-                <input
-                  className={CLASE_INPUT}
-                  value={entregable.nombre}
-                  placeholder="Entregable"
-                  onChange={(e) => actualizarEntregable(indice, e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={() => quitarEntregable(indice)}
-                  className="px-2 text-[12px] text-gray-400"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={agregarEntregable}
-              className="w-full border border-dashed border-gray-400 px-3 py-2 text-left text-[12px] text-gray-600"
-            >
-              + Agregar otro entregable
-            </button>
-          </section>
-
-          <section>
-            <h2 className="mb-3 border-b border-line pb-1.5 text-[14px] font-bold">
-              Condiciones de entrega
-            </h2>
-            <div className="mb-4">
-              <label className={CLASE_LABEL}>Duración estimada</label>
-              <input
-                className={CLASE_INPUT}
-                value={form.duracion_estimada}
-                onChange={(e) => actualizar('duracion_estimada', e.target.value)}
-                placeholder="Ej: 15 días"
-              />
-            </div>
-            <div className="mb-4">
-              <label className={CLASE_LABEL}>Modalidad *</label>
-              <div className="flex flex-wrap gap-4">
-                {Object.entries(FORMATOS).map(([clave, etiqueta]) => (
-                  <label key={clave} className="flex items-center gap-2 text-[12.5px]">
-                    <input
-                      type="radio"
-                      name="formato"
-                      value={clave}
-                      checked={form.formato === clave}
-                      onChange={(e) => actualizar('formato', e.target.value)}
-                    />
-                    {etiqueta}
-                  </label>
-                ))}
-              </div>
-            </div>
-            {requiereUbicacion && (
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+        <div className="space-y-5">
+          <Card>
+            <CardHeader>
               <div>
-                <label className={CLASE_LABEL}>Ubicación *</label>
-                <input
-                  className={CLASE_INPUT}
-                  value={form.ubicacion}
-                  onChange={(e) => actualizar('ubicacion', e.target.value)}
-                />
+                <h2 className="text-[0.9375rem] font-bold text-ink">
+                  Información general
+                </h2>
+                <p className="mt-0.5 text-[0.8125rem] text-ink-3">
+                  Lo primero que verán las organizaciones en el catálogo.
+                </p>
               </div>
-            )}
-          </section>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-blue-soft text-brand-blue-deep">
+                <Icon nombre="file" className="h-5 w-5" />
+              </span>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <Campo etiqueta="Nombre del servicio" htmlFor="titulo" requerido>
+                <Input
+                  id="titulo"
+                  value={form.titulo}
+                  onChange={(e) => actualizar('titulo', e.target.value)}
+                  placeholder="Ej: Sitio web corporativo en 15 días"
+                />
+              </Campo>
+
+              <Campo etiqueta="Categoría" htmlFor="categoria" requerido>
+                <Select
+                  id="categoria"
+                  value={form.categoria}
+                  onChange={(e) => actualizar('categoria', e.target.value)}
+                >
+                  <option value="">Selecciona una categoría</option>
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nombre}
+                    </option>
+                  ))}
+                </Select>
+              </Campo>
+
+              <Campo
+                etiqueta="Descripción breve"
+                htmlFor="descripcion_corta"
+                requerido
+                ayuda="Una línea que resuma el servicio."
+              >
+                <Input
+                  id="descripcion_corta"
+                  maxLength={160}
+                  value={form.descripcion_corta}
+                  onChange={(e) => actualizar('descripcion_corta', e.target.value)}
+                />
+              </Campo>
+
+              <Campo
+                etiqueta="Descripción larga"
+                htmlFor="descripcion_larga"
+                requerido
+                ayuda="Detalla el alcance, la metodología y lo que puede esperar la organización."
+              >
+                <Textarea
+                  id="descripcion_larga"
+                  rows={6}
+                  className="min-h-32"
+                  value={form.descripcion_larga}
+                  onChange={(e) => actualizar('descripcion_larga', e.target.value)}
+                />
+              </Campo>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div>
+                <h2 className="text-[0.9375rem] font-bold text-ink">
+                  ¿Qué incluye el servicio?
+                </h2>
+                <p className="mt-0.5 text-[0.8125rem] text-ink-3">
+                  Lista los entregables concretos que recibirá la organización.
+                </p>
+              </div>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-mint-soft text-brand-mint-deep">
+                <Icon nombre="check-circle" className="h-5 w-5" />
+              </span>
+            </CardHeader>
+            <CardBody className="space-y-2.5">
+              {form.entregables.map((entregable, indice) => (
+                <div key={indice} className="flex items-center gap-2">
+                  <Icon
+                    nombre="check"
+                    className="h-4 w-4 shrink-0 text-brand-mint-deep"
+                    strokeWidth={2.4}
+                  />
+                  <Input
+                    value={entregable.nombre}
+                    placeholder="Entregable"
+                    onChange={(e) => actualizarEntregable(indice, e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => quitarEntregable(indice)}
+                    aria-label={`Quitar entregable ${indice + 1}`}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-ink-3 transition hover:bg-danger-soft hover:text-danger"
+                  >
+                    <Icon nombre="close" className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={agregarEntregable}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line px-3 py-2.5 text-[0.8125rem] font-semibold text-ink-2 transition hover:border-brand-blue hover:text-brand-blue"
+              >
+                <Icon nombre="plus" className="h-4 w-4" />
+                Agregar otro entregable
+              </button>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div>
+                <h2 className="text-[0.9375rem] font-bold text-ink">
+                  Condiciones de entrega
+                </h2>
+                <p className="mt-0.5 text-[0.8125rem] text-ink-3">
+                  Define cómo y dónde se ejecutará el servicio.
+                </p>
+              </div>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-violet-soft text-brand-violet">
+                <Icon nombre="monitor" className="h-5 w-5" />
+              </span>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <Campo etiqueta="Duración estimada" htmlFor="duracion_estimada">
+                <Input
+                  id="duracion_estimada"
+                  value={form.duracion_estimada}
+                  onChange={(e) => actualizar('duracion_estimada', e.target.value)}
+                  placeholder="Ej: 15 días"
+                />
+              </Campo>
+
+              <div>
+                <p className="mb-1.5 block text-[0.8125rem] font-semibold text-ink-2">
+                  Modalidad <span className="ml-1 text-danger">*</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(FORMATOS).map(([clave, etiqueta]) => {
+                    const activo = form.formato === clave
+                    return (
+                      <label
+                        key={clave}
+                        className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3.5 py-1.5 text-[0.8125rem] font-semibold transition ${
+                          activo
+                            ? 'border-brand-blue bg-brand-blue text-white'
+                            : 'border-line bg-white text-ink-2 hover:border-ink-3 hover:text-ink'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="formato"
+                          value={clave}
+                          checked={activo}
+                          onChange={(e) => actualizar('formato', e.target.value)}
+                          className="sr-only"
+                        />
+                        {etiqueta}
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {requiereUbicacion && (
+                <Campo etiqueta="Ubicación" htmlFor="ubicacion" requerido>
+                  <Input
+                    id="ubicacion"
+                    value={form.ubicacion}
+                    onChange={(e) => actualizar('ubicacion', e.target.value)}
+                    placeholder="Ej: Providencia, Santiago"
+                  />
+                </Campo>
+              )}
+            </CardBody>
+          </Card>
         </div>
 
-        <aside className="w-full shrink-0 md:w-64">
-          <h2 className="mb-3 border-b border-line pb-1.5 text-[14px] font-bold">Precio</h2>
-          <div className="mb-4">
-            <label className={CLASE_LABEL}>Precio del servicio (CLP) *</label>
-            <input
-              type="number"
-              min="0"
-              className={CLASE_INPUT}
-              value={form.precio}
-              onChange={(e) => actualizar('precio', e.target.value)}
-            />
-          </div>
+        <aside className="space-y-4 lg:sticky lg:top-24">
+          <Card>
+            <CardHeader>
+              <h2 className="text-[0.9375rem] font-bold text-ink">Precio</h2>
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-coral-soft text-brand-coral-deep">
+                <Icon nombre="wallet" className="h-5 w-5" />
+              </span>
+            </CardHeader>
+            <CardBody className="space-y-4">
+              <Campo
+                etiqueta="Precio del servicio (CLP)"
+                htmlFor="precio"
+                requerido
+              >
+                <Input
+                  id="precio"
+                  type="number"
+                  min="0"
+                  value={form.precio}
+                  onChange={(e) => actualizar('precio', e.target.value)}
+                />
+              </Campo>
 
-          <div className="border border-black bg-[#f5f5f5] p-4">
-            <p className="text-[12px] text-gray-600">Recibirás</p>
-            <p className="text-[20px] font-bold text-brand-green">{formatearCLP(neto)}</p>
-            <p className="mt-1 text-[10.5px] text-gray-500">
-              Monto neto tras la comisión de Skilly.
-            </p>
-          </div>
+              <div className="rounded-xl bg-brand-mint-soft px-4 py-3.5">
+                <p className="text-[0.75rem] font-semibold text-brand-mint-deep">
+                  Recibirás
+                </p>
+                <p className="mt-1 text-[1.5rem] font-extrabold leading-none tracking-[-0.03em] text-ink">
+                  {formatearCLP(neto)}
+                </p>
+                <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-ink-3">
+                  Monto neto tras la comisión de Skilly.
+                </p>
+              </div>
 
-          <div className="mt-4 flex gap-2 text-[11.5px] text-gray-700">
-            <span>⏳</span>
-            <span>Quedará <strong>En revisión</strong> hasta que Skilly lo apruebe.</span>
-          </div>
+              <div className="flex items-start gap-2 rounded-xl bg-info-soft px-3.5 py-3 text-[0.75rem] leading-relaxed text-info">
+                <Icon
+                  nombre="clock"
+                  className="mt-0.5 h-4 w-4 shrink-0"
+                  strokeWidth={2}
+                />
+                <span>
+                  Quedará <strong>En revisión</strong> hasta que Skilly lo apruebe.
+                </span>
+              </div>
 
-          <button
-            type="button"
-            disabled={enviando}
-            onClick={() => guardar(true)}
-            className="mt-4 w-full border border-black bg-black py-3 text-[13px] text-white disabled:opacity-60"
-          >
-            {enviando ? 'Guardando…' : 'Enviar a revisión'}
-          </button>
-          <button
-            type="button"
-            disabled={enviando}
-            onClick={() => guardar(false)}
-            className="mt-2.5 w-full border border-black bg-white py-3 text-[13px] disabled:opacity-60"
-          >
-            Guardar borrador
-          </button>
+              <div className="space-y-2.5">
+                <Boton
+                  type="button"
+                  className="w-full"
+                  cargando={enviando}
+                  onClick={() => guardar(true)}
+                >
+                  Enviar a revisión
+                </Boton>
+                <Boton
+                  type="button"
+                  variante="secundario"
+                  className="w-full"
+                  disabled={enviando}
+                  onClick={() => guardar(false)}
+                >
+                  Guardar borrador
+                </Boton>
+              </div>
+
+              <Link
+                to="/profesional/servicios"
+                className="block text-center text-[0.8125rem] font-semibold text-ink-3 no-underline transition hover:text-ink"
+              >
+                Volver a mis servicios
+              </Link>
+            </CardBody>
+          </Card>
         </aside>
       </div>
     </div>

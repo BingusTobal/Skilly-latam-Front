@@ -4,13 +4,16 @@ import { useSearchParams } from 'react-router-dom'
 import { resumenComisionesAdmin } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import {
   Barras,
   Cargando,
+  Encabezado,
   Kpi,
   Panel,
   Volver,
 } from '../../components/admin/ui'
+import { Boton, Tabla, Td, Th, Tr } from '../../components/ui'
 import { formatearCLP, formatearFechaCorta } from '../../lib/formato'
 
 const MESES = [
@@ -68,28 +71,35 @@ export default function GananciasMes() {
     <div>
       <Volver to="/admin/comisiones">Volver a Comisiones</Volver>
 
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-[19px] font-bold">Ganancias por mes</h1>
-        <div className="flex items-center gap-3 text-[12px]">
-          <button
-            type="button"
-            onClick={() => irA(moverMes(mes, -1))}
-            className="border border-line px-2 py-0.5 text-[14px]"
-            aria-label="Mes anterior"
-          >
-            ‹
-          </button>
-          <span className="font-bold">{etiquetaMes(mes)}</span>
-          <button
-            type="button"
-            onClick={() => irA(moverMes(mes, 1))}
-            className="border border-line px-2 py-0.5 text-[14px]"
-            aria-label="Mes siguiente"
-          >
-            ›
-          </button>
-        </div>
-      </div>
+      <Encabezado
+        titulo="Ganancias por mes"
+        descripcion="Revisa la comisión recaudada, su variación y el detalle de servicios liberados."
+        acciones={
+          <div className="flex items-center gap-2">
+            <Boton
+              variante="secundario"
+              tamano="sm"
+              className="px-2.5"
+              onClick={() => irA(moverMes(mes, -1))}
+              aria-label="Mes anterior"
+            >
+              <Icon nombre="chevron" className="h-4 w-4 rotate-90" />
+            </Boton>
+            <span className="min-w-28 text-center text-[0.875rem] font-bold capitalize text-ink">
+              {etiquetaMes(mes)}
+            </span>
+            <Boton
+              variante="secundario"
+              tamano="sm"
+              className="px-2.5"
+              onClick={() => irA(moverMes(mes, 1))}
+              aria-label="Mes siguiente"
+            >
+              <Icon nombre="chevron" className="h-4 w-4 -rotate-90" />
+            </Boton>
+          </div>
+        }
+      />
 
       {error && (
         <div className="mb-4">
@@ -101,31 +111,42 @@ export default function GananciasMes() {
         <Cargando />
       ) : (
         <>
-          <div className="mb-6 flex flex-wrap gap-3.5">
+          <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Kpi
               etiqueta={`Total generado en ${datos.mes_etiqueta}`}
               valor={formatearCLP(datos.comision_mes)}
               tono="ok"
+              icono="wallet"
             />
             <Kpi
-              etiqueta={`vs. ${etiquetaMes(moverMes(mes, -1))} (${formatearCLP(
-                datos.comision_mes_anterior,
-              )})`}
+              etiqueta={`vs. ${etiquetaMes(
+                moverMes(mes, -1),
+              )} (${formatearCLP(datos.comision_mes_anterior)})`}
               valor={
                 datos.variacion_pct === null
                   ? '—'
-                  : `${datos.variacion_pct >= 0 ? '+' : ''}${datos.variacion_pct.toFixed(1)}%`
+                  : `${datos.variacion_pct >= 0 ? '+' : ''}${datos.variacion_pct.toFixed(
+                      1,
+                    )}%`
               }
+              tono={datos.variacion_pct < 0 ? 'alert' : 'base'}
+              icono="chart"
             />
-            <Kpi etiqueta="Servicios facturados" valor={datos.servicios_facturados} />
+            <Kpi
+              etiqueta="Servicios facturados"
+              valor={datos.servicios_facturados}
+              icono="check-circle"
+            />
             <Kpi
               etiqueta="Comisión promedio por servicio"
               valor={formatearCLP(datos.comision_promedio)}
+              icono="percent"
             />
           </div>
 
           <Panel
             titulo={`Desglose por categoría — ${datos.mes_etiqueta}`}
+            icono="chart"
             className="mb-5"
           >
             <Barras
@@ -137,51 +158,49 @@ export default function GananciasMes() {
             />
           </Panel>
 
-          <Panel titulo="Servicios liberados este mes">
+          <Panel titulo="Servicios liberados este mes" icono="wallet">
             {datos.detalle.length === 0 ? (
-              <p className="text-[12px] text-gray-500">
+              <p className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-[0.8125rem] text-ink-3">
                 No hay pagos liberados en este mes.
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-[12px]">
-                  <thead>
-                    <tr className="border-b border-black text-left">
-                      <th className="py-2 pr-3 font-bold">Servicio</th>
-                      <th className="py-2 pr-3 font-bold">Organización</th>
-                      <th className="py-2 pr-3 text-right font-bold">Monto servicio</th>
-                      <th className="py-2 pr-3 text-right font-bold">Comisión</th>
-                      <th className="py-2 font-bold">Fecha liberación</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {datos.detalle.map((fila) => (
-                      <tr key={fila.id} className="border-b border-line">
-                        <td className="py-2.5 pr-3 font-bold">{fila.servicio}</td>
-                        <td className="py-2.5 pr-3">{fila.organizacion}</td>
-                        <td className="py-2.5 pr-3 text-right">
-                          {formatearCLP(fila.monto_servicio)}
-                        </td>
-                        <td className="py-2.5 pr-3 text-right">
-                          {formatearCLP(fila.comision)}
-                        </td>
-                        <td className="py-2.5">
-                          {formatearFechaCorta(fila.fecha_liberacion)}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="border-t border-black font-bold">
-                      <td className="py-2.5 pr-3" colSpan={3}>
-                        Total del mes
-                      </td>
-                      <td className="py-2.5 pr-3 text-right">
-                        {formatearCLP(datos.comision_mes)}
-                      </td>
-                      <td />
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <Tabla>
+                <thead>
+                  <tr>
+                    <Th>Servicio</Th>
+                    <Th>Organización</Th>
+                    <Th className="text-right">Monto servicio</Th>
+                    <Th className="text-right">Comisión</Th>
+                    <Th>Fecha liberación</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {datos.detalle.map((fila) => (
+                    <Tr key={fila.id}>
+                      <Td className="font-bold text-ink">{fila.servicio}</Td>
+                      <Td>{fila.organizacion}</Td>
+                      <Td className="whitespace-nowrap text-right">
+                        {formatearCLP(fila.monto_servicio)}
+                      </Td>
+                      <Td className="whitespace-nowrap text-right font-semibold text-ink">
+                        {formatearCLP(fila.comision)}
+                      </Td>
+                      <Td className="whitespace-nowrap">
+                        {formatearFechaCorta(fila.fecha_liberacion)}
+                      </Td>
+                    </Tr>
+                  ))}
+                  <Tr className="bg-canvas/70 hover:bg-canvas/70">
+                    <Td colSpan={3} className="font-bold text-ink">
+                      Total del mes
+                    </Td>
+                    <Td className="whitespace-nowrap text-right font-extrabold text-ink">
+                      {formatearCLP(datos.comision_mes)}
+                    </Td>
+                    <Td />
+                  </Tr>
+                </tbody>
+              </Tabla>
             )}
           </Panel>
         </>

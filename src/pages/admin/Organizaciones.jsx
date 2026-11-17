@@ -1,10 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 
 import { listarOrganizacionesAdmin } from '../../api/admin'
 import { mensajeDeError } from '../../api/axios'
 import Alerta from '../../components/Alerta'
+import Icon from '../../components/Icon'
 import { Cargando, Encabezado, Estado, Kpi, Vacio } from '../../components/admin/ui'
+import {
+  Avatar,
+  Boton,
+  BotonEnlace,
+  Input,
+  Tabla,
+  Td,
+  Th,
+  Tr,
+} from '../../components/ui'
 import { formatearCLP, formatearFechaCorta } from '../../lib/formato'
 
 function esDelMes(fechaISO) {
@@ -57,13 +67,24 @@ export default function Organizaciones() {
 
   return (
     <div>
-      <Encabezado titulo="Organizaciones" />
+      <Encabezado
+        titulo="Organizaciones"
+        descripcion="Consulta las cuentas activas, su gasto acumulado y el historial de servicios contratados."
+      />
 
-      <div className="mb-6 flex gap-3.5">
-        <Kpi etiqueta="Organizaciones activas" valor={kpis.activas} tono="ok" />
-        <Kpi etiqueta="Nuevas este mes" valor={kpis.nuevas} />
-        <Kpi etiqueta="Gasto acumulado (histórico)" valor={formatearCLP(kpis.gasto)} />
-        <Kpi etiqueta="Servicios promedio por organización" valor={kpis.promedio} />
+      <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Kpi etiqueta="Organizaciones activas" valor={kpis.activas} tono="ok" icono="building" />
+        <Kpi etiqueta="Nuevas este mes" valor={kpis.nuevas} icono="plus" />
+        <Kpi
+          etiqueta="Gasto acumulado (histórico)"
+          valor={formatearCLP(kpis.gasto)}
+          icono="wallet"
+        />
+        <Kpi
+          etiqueta="Servicios promedio por organización"
+          valor={kpis.promedio}
+          icono="chart"
+        />
       </div>
 
       <form
@@ -73,18 +94,16 @@ export default function Organizaciones() {
           setQ(busqueda.trim())
         }}
       >
-        <input
+        <Input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre, RUT o correo…"
-          className="flex-1 border border-gray-400 px-3 py-2 text-[12.5px] outline-none"
+          className="flex-1 text-[0.8125rem]"
         />
-        <button
-          type="submit"
-          className="border border-black bg-black px-4 py-2 text-[12px] text-white"
-        >
+        <Boton type="submit" variante="secundario" tamano="sm">
+          <Icon nombre="search" className="h-4 w-4" />
           Buscar
-        </button>
+        </Boton>
       </form>
 
       {error && (
@@ -98,61 +117,65 @@ export default function Organizaciones() {
       ) : organizaciones.length === 0 ? (
         <Vacio>No se encontraron organizaciones.</Vacio>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[12px]">
-            <thead>
-              <tr className="border-b border-black text-left">
-                <th className="py-2 pr-3 font-bold">Organización</th>
-                <th className="py-2 pr-3 font-bold">RUT</th>
-                <th className="py-2 pr-3 font-bold">Contacto</th>
-                <th className="py-2 pr-3 text-right font-bold">Servicios</th>
-                <th className="py-2 pr-3 text-right font-bold">Gasto total</th>
-                <th className="py-2 pr-3 font-bold">Estado</th>
-                <th className="py-2 font-bold" />
-              </tr>
-            </thead>
-            <tbody>
-              {organizaciones.map((o) => (
-                <tr key={o.id} className="border-b border-line">
-                  <td className="py-2.5 pr-3">
-                    <span className="font-bold">{o.nombre}</span>
-                    <span className="block text-[10.5px] text-gray-500">
-                      {o.modo_nombre}
-                      {o.ultima_reserva &&
-                        ` · última reserva ${formatearFechaCorta(o.ultima_reserva)}`}
-                    </span>
-                  </td>
-                  <td className="py-2.5 pr-3">{o.rut || '—'}</td>
-                  <td className="py-2.5 pr-3">
-                    {o.nombre_contacto}
-                    <span className="block text-[10.5px] text-gray-500">
-                      {o.email_contacto}
-                    </span>
-                  </td>
-                  <td className="py-2.5 pr-3 text-right">{o.reservas_count}</td>
-                  <td className="py-2.5 pr-3 text-right">
-                    {formatearCLP(o.gasto_total)}
-                  </td>
-                  <td className="py-2.5 pr-3">
-                    {o.activa ? (
-                      <Estado clase="bg-green-100 text-green-700">Activa</Estado>
-                    ) : (
-                      <Estado clase="bg-gray-200 text-gray-600">Inactiva</Estado>
-                    )}
-                  </td>
-                  <td className="py-2.5 text-right">
-                    <Link
-                      to={`/admin/organizaciones/${o.id}`}
-                      className="border border-black px-2.5 py-1 text-[11px] font-bold text-black no-underline"
-                    >
-                      Ver
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Tabla>
+          <thead>
+            <tr>
+              <Th>Organización</Th>
+              <Th>RUT</Th>
+              <Th>Contacto</Th>
+              <Th className="text-right">Servicios</Th>
+              <Th className="text-right">Gasto total</Th>
+              <Th>Estado</Th>
+              <Th className="text-right">Acción</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {organizaciones.map((o) => (
+              <Tr key={o.id}>
+                <Td>
+                  <div className="flex items-center gap-3">
+                    <Avatar nombre={o.nombre} tamano="sm" />
+                    <div className="min-w-0">
+                      <p className="font-bold text-ink">{o.nombre}</p>
+                      <p className="text-[0.75rem] text-ink-3">
+                        {o.modo_nombre}
+                        {o.ultima_reserva &&
+                          ` · última reserva ${formatearFechaCorta(
+                            o.ultima_reserva,
+                          )}`}
+                      </p>
+                    </div>
+                  </div>
+                </Td>
+                <Td>{o.rut || '—'}</Td>
+                <Td>
+                  <p className="font-semibold text-ink">{o.nombre_contacto}</p>
+                  <p className="text-[0.75rem] text-ink-3">{o.email_contacto}</p>
+                </Td>
+                <Td className="text-right font-semibold text-ink">
+                  {o.reservas_count}
+                </Td>
+                <Td className="whitespace-nowrap text-right font-semibold text-ink">
+                  {formatearCLP(o.gasto_total)}
+                </Td>
+                <Td>
+                  <Estado tono={o.activa ? 'ok' : 'neutro'}>
+                    {o.activa ? 'Activa' : 'Inactiva'}
+                  </Estado>
+                </Td>
+                <Td className="text-right">
+                  <BotonEnlace
+                    to={`/admin/organizaciones/${o.id}`}
+                    tamano="sm"
+                    variante="secundario"
+                  >
+                    Ver
+                  </BotonEnlace>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Tabla>
       )}
     </div>
   )
