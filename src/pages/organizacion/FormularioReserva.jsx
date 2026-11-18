@@ -49,15 +49,21 @@ export default function FormularioReserva() {
   }, [id])
 
   useEffect(() => {
-    if (usuario) {
-      setForm((actual) => ({
-        ...actual,
-        email: actual.email || usuario.email || '',
-        nombre:
-          actual.nombre ||
-          `${usuario.first_name || ''} ${usuario.last_name || ''}`.trim(),
-      }))
-    }
+    if (!usuario) return
+
+    const organizacion = usuario.organizacion
+    const nombreContacto =
+      organizacion?.nombre_contacto ||
+      `${usuario.first_name || ''} ${usuario.last_name || ''}`.trim()
+
+    setForm((actual) => ({
+      ...actual,
+      nombre: actual.nombre || nombreContacto,
+      email: actual.email || organizacion?.email_contacto || usuario.email || '',
+      telefono: actual.telefono || organizacion?.telefono || '',
+      empresa: actual.empresa || organizacion?.nombre || '',
+      rut: actual.rut || organizacion?.rut || '',
+    }))
   }, [usuario])
 
   function actualizar(campo, valor) {
@@ -130,8 +136,9 @@ export default function FormularioReserva() {
           Completa tu reserva
         </h1>
         <p className="mt-2 max-w-2xl text-[0.95rem] leading-relaxed text-ink-3">
-          Reserva sin crear cuenta. Solo necesitamos tus datos de contacto para
-          coordinar el servicio.
+          {usuario?.organizacion
+            ? 'Usamos los datos de tu organización registrada. Puedes ajustarlos si es necesario.'
+            : 'Reserva sin crear cuenta. Solo necesitamos tus datos de contacto para coordinar el servicio.'}
         </p>
       </div>
 

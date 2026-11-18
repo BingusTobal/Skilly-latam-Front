@@ -67,6 +67,7 @@ export default function LoginRegistro() {
         email_contacto: registro.email_contacto,
         telefono: registro.telefono,
         password: registro.password,
+        password_confirmacion: registro.password2,
       })
       navigate(destinoPorTipo(usuario.tipo), { replace: true })
     } catch (err) {
