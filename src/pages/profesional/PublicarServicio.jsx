@@ -37,6 +37,7 @@ const VACIO = {
   entregables: [],
 }
 
+// Publicar servicio: crea o edita un servicio y lo envía a revisión.
 export default function PublicarServicio() {
   const { id } = useParams()
   const navigate = useNavigate()

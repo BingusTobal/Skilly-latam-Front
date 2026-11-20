@@ -1,6 +1,5 @@
-// Centro de ayuda (RF-18 y RF-31). El contenido vive acá, separado de la
-// página, para poder corregirlo sin tocar el componente ni el comportamiento
-// del buscador.
+// Centro de ayuda: el contenido vive acá, separado de la página, para
+// corregirlo sin tocar el componente ni el comportamiento del buscador.
 
 export const CONTACTO = {
   email: 'hola@skillylatam.com',

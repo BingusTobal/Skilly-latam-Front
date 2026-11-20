@@ -1,6 +1,6 @@
 import api from './axios'
 
-// Disputas de las partes de una reserva (RF / Sprint 5).
+// Disputas de las partes de una reserva.
 export async function misDisputas(params = {}) {
   const { data } = await api.get('/disputas/', { params })
   return data

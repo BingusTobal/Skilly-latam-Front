@@ -64,6 +64,7 @@ function CargandoDetalle() {
   )
 }
 
+// Detalle servicio: muestra el servicio y sugerencias de la misma categoría.
 export default function DetalleServicio() {
   const { id } = useParams()
   const [servicio, setServicio] = useState(null)

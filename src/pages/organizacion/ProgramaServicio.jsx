@@ -52,6 +52,7 @@ function CargandoPrograma() {
   )
 }
 
+// Programar servicio: consulta disponibilidad y guarda la fecha y hora elegidas.
 export default function ProgramaServicio() {
   const { id } = useParams()
   const navigate = useNavigate()

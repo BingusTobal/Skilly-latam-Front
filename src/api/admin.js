@@ -1,6 +1,6 @@
 import api from './axios'
 
-// --- Servicios ---
+// Revisión de servicios
 export function listarServiciosAdmin(params = {}) {
   return api.get('/admin/servicios/', { params })
 }
@@ -17,7 +17,7 @@ export function rechazar(id, comentarios_admin) {
   return api.post(`/admin/servicios/${id}/rechazar/`, { comentarios_admin })
 }
 
-// --- Resumen y comisiones ---
+// Resumen y comisiones
 export function resumenAdmin() {
   return api.get('/admin/resumen/')
 }
@@ -26,7 +26,7 @@ export function resumenComisionesAdmin(params = {}) {
   return api.get('/admin/comisiones/', { params })
 }
 
-// --- Tasas de comisión (ticket 5.4) ---
+// Comisiones
 export function listarTasasComisionAdmin() {
   return api.get('/admin/tasas-comision/')
 }
@@ -51,7 +51,7 @@ export function resolverDisputaAdmin(id, { resultado, resolucion, porcentaje_ree
   })
 }
 
-// --- Postulaciones y certificados ---
+// Postulaciones y certificados
 export function listarPostulacionesAdmin(params = {}) {
   return api.get('/postulaciones/admin/postulaciones/', { params })
 }
@@ -90,7 +90,7 @@ export function rechazarCertificado(id, comentario_revisor) {
   })
 }
 
-// --- Profesionales y organizaciones ---
+// Profesionales y organizaciones
 export function listarProfesionalesAdmin(params = {}) {
   return api.get('/auth/admin/profesionales/', { params })
 }

@@ -24,6 +24,7 @@ function Fila({ etiqueta, children }) {
   )
 }
 
+// Confirmar entrega: confirma la entrega y libera el pago retenido.
 export default function ConfirmarEntrega() {
   const { id } = useParams()
 

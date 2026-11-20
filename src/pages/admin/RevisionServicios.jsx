@@ -42,6 +42,7 @@ function SkeletonServicio() {
   )
 }
 
+// Revisión de servicios: aprueba, devuelve o rechaza servicios publicados.
 export default function RevisionServicios() {
   const [estado, setEstado] = useState('en_revision')
   const [servicios, setServicios] = useState([])

@@ -21,6 +21,7 @@ import {
   formatearFecha,
 } from '../../lib/formato'
 
+// Detalle postulación: revisa la postulación y aprueba certificados pendientes.
 export default function DetallePostulacion() {
   const { id } = useParams()
   const navigate = useNavigate()

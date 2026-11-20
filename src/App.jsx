@@ -40,6 +40,7 @@ import Solicitud from './pages/profesional/Solicitud'
 export default function App() {
   return (
     <Routes>
+      {/* Público */}
       <Route element={<SitioLayout modo="inicio" />}>
         <Route index element={<Home />} />
       </Route>
@@ -57,7 +58,8 @@ export default function App() {
         <Route path="recuperar-password" element={<SolicitarReset />} />
         <Route path="activar-cuenta/:uid/:token" element={<ActivarCuenta />} />
 
-        <Route element={<RutaProtegida tipos={['organizacion']} />}>
+        {/* Organización */}
+      <Route element={<RutaProtegida tipos={['organizacion']} />}>
           <Route path="mis-reservas" element={<MisReservas />} />
           <Route path="reserva/:id/confirmar" element={<ConfirmarEntrega />} />
         </Route>
@@ -65,6 +67,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
 
+      {/* Profesional */}
       <Route element={<RutaProtegida tipos={['profesional']} />}>
         <Route element={<ProfesionalLayout />}>
           <Route path="profesional" element={<Navigate to="/profesional/servicios" replace />} />
@@ -79,6 +82,7 @@ export default function App() {
         </Route>
       </Route>
 
+      {/* Administración */}
       <Route element={<RutaProtegida tipos={['admin']} />}>
         <Route element={<AdminLayout />}>
           <Route path="admin" element={<Resumen />} />

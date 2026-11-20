@@ -1,4 +1,4 @@
-// RF: montos en pesos chilenos, sin decimales.
+// Montos en pesos chilenos, sin decimales.
 export const TASA_COMISION = 0.1
 
 export function formatearCLP(monto) {
@@ -6,7 +6,7 @@ export function formatearCLP(monto) {
   return `$${numero.toLocaleString('es-CL', { maximumFractionDigits: 0 })}`
 }
 
-// El profesional ve solo el monto neto, nunca el desglose bruto + comisión.
+// Monto neto: el profesional ve solo este valor, nunca bruto + comisión.
 export function montoNeto(precio) {
   return Math.round((Number(precio) || 0) * (1 - TASA_COMISION))
 }
@@ -20,7 +20,7 @@ export const ESTADOS_SERVICIO = {
   suspendido: { etiqueta: 'Suspendido', clase: 'bg-canvas text-ink-3' },
 }
 
-// Estados de la postulación y de sus certificados.
+// Postulaciones: estados de la postulación y de sus certificados.
 export const ESTADOS_POSTULACION = {
   pendiente: { etiqueta: 'Pendiente', clase: 'bg-warn-soft text-warn' },
   aprobada: { etiqueta: 'Aprobada', clase: 'bg-ok-soft text-ok' },
@@ -38,7 +38,7 @@ export const ESTADOS_CERTIFICADO = {
   rechazado: { etiqueta: 'Rechazado', clase: 'bg-danger-soft text-danger' },
 }
 
-// Estados de la reserva (Sprint 3).
+// Mis reservas: estados de la reserva.
 export const ESTADOS_RESERVA = {
   pendiente_pago: {
     etiqueta: 'Pendiente de pago',

@@ -1,6 +1,6 @@
 import api from './axios'
 
-// --- Disponibilidad (público) ---------------------------------------------
+// Disponibilidad
 export async function slotsServicio(id, fecha) {
   const { data } = await api.get(`/servicios/${id}/slots/`, { params: { fecha } })
   return data
@@ -11,7 +11,7 @@ export async function disponibilidadServicio(id, params = {}) {
   return data
 }
 
-// --- Reservas ---
+// Mis reservas
 export async function crearReserva(payload) {
   const { data } = await api.post('/reservas/', payload)
   return data

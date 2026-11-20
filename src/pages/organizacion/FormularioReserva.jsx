@@ -22,6 +22,7 @@ import { useAuth } from '../../context/AuthContext'
 import { formatearFecha, formatearHora } from '../../lib/formato'
 import { irAWebpay } from '../../lib/webpay'
 
+// Formulario reserva: crea la reserva con datos de contacto, sin exigir cuenta.
 export default function FormularioReserva() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()

@@ -35,6 +35,7 @@ function SkeletonReserva() {
   )
 }
 
+// Mis reservas: lista las reservas de la organización.
 export default function MisReservas() {
   const [reservas, setReservas] = useState([])
   const [cargando, setCargando] = useState(true)
